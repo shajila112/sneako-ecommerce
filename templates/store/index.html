@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- ================= HERO SECTION ================= -->
+<section class="hero">
+    <div class="container hero-container">
+        <div class="hero-content">
+            <h1>Step Into <span class="highlight">Style</span></h1>
+            <p>Premium branded sneakers for every move.</p>
+
+            <div class="hero-btns">
+                <a href="#" class="btn btn-primary">Shop Collection</a>
+                <a href="#" class="btn btn-outline">New Arrivals</a>
+            </div>
+        </div>
+
+        <div class="hero-image">
+            <img src="{% static 'images/hero_sneaker.png' %}" alt="Featured Sneaker">
+        </div>
+    </div>
+</section>
+
+<!-- ================= CATEGORIES ================= -->
+<section class="categories section">
+    <div class="container">
+        <div class="grid grid-3">
+
+            <div class="category-card">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800" alt="Men Shoes">
+                <div class="category-overlay">
+                    <h3>Men's Shoes</h3>
+                    <a href="#" class="category-link">Shop Now</a>
+                </div>
+            </div>
+
+            <div class="category-card">
+                <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800" alt="Women Shoes">
+                <div class="category-overlay">
+                    <h3>Women's Shoes</h3>
+                    <a href="#" class="category-link">Shop Now</a>
+                </div>
+            </div>
+
+            <div class="category-card">
+                <img src="https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=800" alt="Kids Shoes">
+                <div class="category-overlay">
+                    <h3>Kids' Shoes</h3>
+                    <a href="#" class="category-link">Shop Now</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ================= FEATURED PRODUCTS ================= -->
+<section class="featured-products section">
+    <div class="container">
+        <h2 class="section-title">Featured Products</h2>
+
+        <div class="grid grid-4">
+
+            <div class="product-card">
+                <div class="product-img-wrapper">
+                    <span class="discount-badge">-20%</span>
+                    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400">
+                    <button class="add-to-cart">Add to Cart</button>
+                </div>
+                <div class="product-info">
+                    <h3>Nike Air Max 270</h3>
+                    <p class="price">$150</p>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-img-wrapper">
+                    <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400">
+                    <button class="add-to-cart">Add to Cart</button>
+                </div>
+                <div class="product-info">
+                    <h3>Adidas Ultraboost</h3>
+                    <p class="price">$180</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

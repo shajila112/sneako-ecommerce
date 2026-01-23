@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNEAKO | Premium Branded Sneakers</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<header id="main-header">
+    <div class="container header-container">
+        <a href="{% url 'home' %}" class="logo">SNEAKO</a>
+
+        <div class="search-bar">
+            <i data-lucide="search"></i>
+            <input type="text" placeholder="Search sneakers...">
+        </div>
+
+        <nav class="header-actions">
+            <a href="#" class="icon-btn" aria-label="Wishlist">
+                <i data-lucide="heart"></i>
+            </a>
+            <a href="#" class="icon-btn cart-btn" aria-label="Cart">
+                <i data-lucide="shopping-cart"></i>
+                <span class="badge">0</span>
+            </a>
+            <a href="#" class="auth-btn">Login / Register</a>
+        </nav>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="footer">
+    <div class="container footer-grid">
+        <div class="footer-section">
+            <a href="{% url 'home' %}" class="logo">SNEAKO</a>
+            <p>Your ultimate destination for premium sneakers.</p>
+        </div>
+
+        <div class="footer-section">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="#">Shop</a></li>
+                <li><a href="#">Cart</a></li>
+                <li><a href="#">Orders</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>Customer Support</h4>
+            <ul>
+                <li><a href="#">Contact Us</a></li>
+                <li><a href="#">Shipping Policy</a></li>
+                <li><a href="#">Returns</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>Follow Us</h4>
+            <div class="social-links">
+                <a href="#"><i data-lucide="instagram"></i></a>
+                <a href="#"><i data-lucide="facebook"></i></a>
+                <a href="#"><i data-lucide="twitter"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>&copy; 2026 SNEAKO. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- JS -->
+<script src="{% static 'js/script.js' %}"></script>
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html>
