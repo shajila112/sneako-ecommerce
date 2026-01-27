@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register | SNEAKO{% endblock %}
+
+{% block content %}
+
+<main class="auth-body">
+    <div class="auth-card">
+        <div class="auth-logo">SNEAKO</div>
+
+        <div class="auth-header">
+            <h2>Create an Account</h2>
+        </div>
+
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                {{ form.full_name }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                {{ form.email }}
+            </div>
+
+           
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                {{ form.password1 }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Confirm Password</label>
+                {{ form.password2 }}
+            </div>
+
+            <button type="submit" class="auth-btn mt-3">
+                Register
+            </button>
+
+            <div class="d-flex align-items-center my-3">
+                <hr class="flex-grow-1">
+                <span class="mx-2 text-muted small">OR</span>
+                <hr class="flex-grow-1">
+            </div>
+
+            <!-- Google UI stays -->
+            <div class="g_id_signin"
+                data-type="standard"
+                data-size="large"
+                data-theme="outline"
+                data-text="signup_with"
+                data-width="100%">
+            </div>
+        </form>
+
+        <div class="auth-link">
+            Already have an account?
+            <a href="#">Login</a>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

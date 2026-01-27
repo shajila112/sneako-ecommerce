@@ -39,7 +39,13 @@
                 <i data-lucide="shopping-cart"></i>
                 <span class="badge">0</span>
             </a>
-            <a href="#" class="auth-btn">Login / Register</a>
+            <div class="auth-btn auth-combined">
+                <a href="#" class="auth-text">Login</a>
+                <span class="divider"> / </span>
+                <a href="{% url 'register' %}" class="auth-text">Register</a>
+            </div>
+
+
         </nav>
     </div>
 </header>
