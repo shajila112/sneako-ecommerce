@@ -7,38 +7,38 @@
         <div class="auth-logo">SNEAKO</div>
 
         <div class="auth-header">
-            <h2>Create an Account</h2>
+            <h2>Login to Your Account</h2>
         </div>
 
         <!-- 🔥 FORM FIXED -->
-        <form method="POST" action="{% url 'accounts:register' %}">
+        <form method="POST" action="{% url 'accounts:login' %}">
             {% csrf_token %}
 
             <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-control"
-                       name="name" placeholder="Enter your full name" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Email Address</label>
+                <label class="form-label">Email address</label>
                 <input type="email" class="form-control"
                        name="email" placeholder="Enter your email" required>
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" class="form-control"
-                       name="password" placeholder="Create a password" required>
+                <div class="d-flex justify-content-between align-items-center">
+                    <label class="form-label mb-0">Password</label>
+                    <a href="#" class="text-decoration-none small fw-bold"
+                       style="color: var(--primary-color);">
+                        Forgot Password?
+                    </a>
+                </div>
+
+                <input type="password" class="form-control mt-2"
+                       name="password" placeholder="Enter your password" required>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Confirm Password</label>
-                <input type="password" class="form-control"
-                       name="confirm_password" placeholder="Confirm your password" required>
+            <div class="remember-me">
+                <input type="checkbox" id="remember">
+                <label for="remember">Remember me</label>
             </div>
 
-            <button type="submit" class="auth-btn mt-3">Register</button>
+            <button type="submit" class="auth-btn mt-3">Login</button>
 
             <div class="d-flex align-items-center my-3">
                 <hr class="flex-grow-1">
@@ -56,7 +56,7 @@
                  data-type="standard"
                  data-size="large"
                  data-theme="outline"
-                 data-text="signup_with"
+                 data-text="sign_in_with"
                  data-shape="rectangular"
                  data-logo_alignment="left"
                  data-width="100%">
@@ -64,10 +64,9 @@
         </form>
 
         <div class="auth-link">
-            Already have an account?
-            <a href="{% url 'accounts:login' %}">Login</a>
+            Don’t have an account?
+            <a href="{% url 'accounts:register' %}">Register</a>
         </div>
     </div>
 </main>
 {% endblock %}
-
