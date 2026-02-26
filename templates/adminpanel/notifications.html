@@ -1,0 +1,61 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Notifications | SNEAKO Admin{% endblock %}
+{% block active_notifications %}active{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="m-0">Admin Notifications</h4>
+        <button class="btn btn-sm btn-outline-dark">Mark all as read</button>
+    </div>
+
+    <div class="notifications-list p-0">
+        <!-- Today Section -->
+        <div class="notif-date-header px-4 py-2 bg-light border-bottom">
+            <span class="text-muted small fw-bold text-uppercase">Today</span>
+        </div>
+
+        {% for notification in today_notifications %}
+        <div class="notif-item {% if not notification.is_read %}unread{% endif %} border-bottom px-4">
+            <div class="notif-icon bg-{{ notification.color|default:'blue' }} text-{{ notification.text_color|default:'primary' }}"
+                style="background: {{ notification.bg_color|default:'#eff6ff' }};">
+                <i data-lucide="{{ notification.icon|default:'bell' }}" size="18"></i>
+            </div>
+            <div class="notif-content">
+                <div class="d-flex justify-content-between">
+                    <h5>{{ notification.title }}</h5>
+                    <span class="time">{{ notification.created_at|timesince }} ago</span>
+                </div>
+                <p>{{ notification.message }}</p>
+                {% if notification.action_url %}
+                <div class="notif-actions mt-2">
+                    <a href="{{ notification.action_url }}" class="btn btn-sm btn-light border py-0 px-2">{{
+                        notification.action_text|default:"View" }}</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="p-4 text-center text-muted">No notifications for today.</div>
+        {% endfor %}
+
+        <!-- Earlier Section -->
+        <div class="notif-date-header px-4 py-2 bg-light border-bottom border-top">
+            <span class="text-muted small fw-bold text-uppercase">Earlier</span>
+        </div>
+
+        {% for notification in earlier_notifications %}
+        <div class="notif-item {% if not notification.is_read %}unread{% endif %} border-bottom px-4">
+            <!-- ... same structure ... -->
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card-footer bg-white border-top-0 text-center py-3">
+        <button class="btn btn-sm btn-light border">Load more notifications</button>
+    </div>
+</div>
+{% endblock %}

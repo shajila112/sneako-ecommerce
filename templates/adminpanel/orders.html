@@ -1,0 +1,309 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Manage Orders | SNEAKO Admin{% endblock %}
+{% block active_orders %}active{% endblock %}
+{% block page_title %}Order Management{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="card-header">
+        <h4>Customer Orders</h4>
+    </div>
+    <div class="table-responsive">
+        <table class="table-admin">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Product</th>
+                    <th>Customer Name</th>
+                    <th>Order Date</th>
+                    <th>Payment Status</th>
+                    <th>Order Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr id="order-row-{{ order.id }}">
+                    <td>#ORD-{{ order.id }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-light rounded-3"
+                                style="width: 40px; height: 40px; overflow: hidden; flex-shrink: 0;">
+                                {% if order.first_item_image %}
+                                <img src="{{ order.first_item_image.url }}" alt="Sneaker"
+                                    class="w-100 h-100 object-fit-contain">
+                                {% else %}
+                                <div
+                                    class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary-subtle">
+                                    <i data-lucide="package" class="text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="fw-medium small">
+                                <div class="line-clamp-1">{{ order.first_item_name }}</div>
+                                {% if order.items.count > 1 %}
+                                <div class="text-muted extra-small">+{{ order.items.count|add:"-1" }} more</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="fw-bold">{{ order.address.full_name|default:order.user.username }}</td>
+                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                    <td class="payment-status-cell"><span class="status-badge {{ order.payment_status|lower }}">{{
+                            order.payment_status }}</span></td>
+                    <td class="order-status-cell"><span class="status-badge {{ order.status|lower }}">{{ order.status
+                            }}</span></td>
+                    <td><button class="btn btn-sm btn-light border px-3 rounded-pill hov-dark view-order-btn"
+                            data-bs-toggle="modal" data-bs-target="#viewOrderModal" data-order-id="#ORD-{{ order.id }}"
+                            data-customer="{{ order.address.full_name|default:order.user.username }}"
+                            data-email="{{ order.user.email }}" data-phone="{{ order.address.phone }}"
+                            data-address="{{ order.address.street_address|default:'' }}, {{ order.address.city|default:'' }}, {{ order.address.state|default:'' }}, {{ order.address.zip_code|default:'' }}, {{ order.address.country|default:'' }}"
+                            data-payment="{{ order.payment_method }}" data-items='{{ order.get_items_json|safe }}'
+                            data-subtotal="{{ order.subtotal }}" data-discount="{{ order.discount_amount }}"
+                            data-coupon="{{ order.coupon.code|default:'None' }}"
+                            data-shipping="{{ order.shipping_cost }}" data-tax="{{ order.tax }}"
+                            data-total="{{ order.total_amount }}" data-status-payment="{{ order.payment_status }}"
+                            data-status-order="{{ order.status }}">
+                            View Order</button></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">No orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- View Order Modal -->
+<div class="modal fade" id="viewOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold">Order Details <span class="text-muted small ms-2"
+                        id="modal-order-id">#ORD-XXXX</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4 mb-4">
+                    <!-- Customer Info -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="user" size="18"
+                                class="me-2"></i> Customer Info</h6>
+                        <div class="p-3 bg-light rounded-4">
+                            <p class="mb-1 fw-bold" id="modal-customer-name">John Doe</p>
+                            <p class="mb-1 text-muted small" id="modal-customer-email">john@example.com</p>
+                            <p class="mb-0 text-muted small" id="modal-customer-phone">+1 234 567 890</p>
+                        </div>
+                    </div>
+                    <!-- Shipping Address -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="map-pin" size="18"
+                                class="me-2"></i> Shipping Address</h6>
+                        <div class="p-3 bg-light rounded-4">
+                            <p class="mb-0 text-muted small" id="modal-shipping-address">123 Shoe Street, Sneakers
+                                City, NY 10001, USA</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status & Payment -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="info" size="18"
+                                class="me-2"></i> Order Status</h6>
+                        <div class="d-flex gap-2" id="modal-status-badges">
+                            <!-- Badges will be inserted here -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="credit-card" size="18"
+                                class="me-2"></i> Payment Method</h6>
+                        <p class="mb-0 text-muted small" id="modal-payment-method">Stripe (Credit Card)</p>
+                    </div>
+                </div>
+
+                <!-- Order Items Table -->
+                <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="package" size="18" class="me-2"></i>
+                    Order Items</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-borderless align-middle">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr class="small text-muted text-uppercase fw-bold">
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-order-items">
+                            <!-- Items will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary -->
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Subtotal</span>
+                            <span class="fw-bold" id="modal-subtotal">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Shipping</span>
+                            <span class="fw-bold" id="modal-shipping">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 text-danger">
+                            <span class="small">Discount (<span id="modal-coupon">None</span>)</span>
+                            <span class="fw-bold" id="modal-discount">-$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                            <span class="text-muted small">Tax (5%)</span>
+                            <span class="fw-bold" id="modal-tax">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bolder fs-5">Total</span>
+                            <span class="fw-bolder fs-5" id="modal-total">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 d-flex justify-content-between">
+                <div>
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-dark rounded-pill px-4" onclick="window.print()">
+                        <i data-lucide="printer" size="16" class="me-2"></i> Print Invoice
+                    </button>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <select id="update-order-status" class="form-select form-select-sm rounded-pill px-3"
+                        style="width: 150px;">
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Return Requested">Return Requested</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                    <select id="update-payment-status" class="form-select form-select-sm rounded-pill px-3"
+                        style="width: 150px;">
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Refunded">Refunded</option>
+                    </select>
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill px-4"
+                        id="save-status-btn">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Populate View Order Modal
+    document.querySelectorAll('.view-order-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const orderId = btn.getAttribute('data-order-id');
+            const customer = btn.getAttribute('data-customer');
+            const email = btn.getAttribute('data-email');
+            const phone = btn.getAttribute('data-phone');
+            const address = btn.getAttribute('data-address');
+            const payment = btn.getAttribute('data-payment');
+            const items = JSON.parse(btn.getAttribute('data-items'));
+            const subtotal = btn.getAttribute('data-subtotal');
+            const discount = btn.getAttribute('data-discount');
+            const coupon = btn.getAttribute('data-coupon');
+            const shipping = btn.getAttribute('data-shipping');
+            const tax = btn.getAttribute('data-tax');
+            const total = btn.getAttribute('data-total');
+            const statusPayment = btn.getAttribute('data-status-payment');
+            const statusOrder = btn.getAttribute('data-status-order');
+
+            document.getElementById('modal-order-id').innerText = orderId;
+            document.getElementById('modal-customer-name').innerText = customer;
+            document.getElementById('modal-customer-email').innerText = email;
+            document.getElementById('modal-customer-phone').innerText = phone;
+            document.getElementById('modal-shipping-address').innerText = address;
+            document.getElementById('modal-payment-method').innerText = payment;
+            document.getElementById('modal-subtotal').innerText = `$${subtotal}`;
+            document.getElementById('modal-discount').innerText = `-$${discount}`;
+            document.getElementById('modal-coupon').innerText = coupon;
+            document.getElementById('modal-shipping').innerText = `$${shipping}`;
+            document.getElementById('modal-tax').innerText = `$${tax}`;
+            document.getElementById('modal-total').innerText = `$${total}`;
+
+            // Status Badges
+            const badgeContainer = document.getElementById('modal-status-badges');
+            badgeContainer.innerHTML = `
+                <span class="status-badge ${statusPayment.toLowerCase()}">${statusPayment}</span>
+                <span class="status-badge ${statusOrder.toLowerCase()}">${statusOrder}</span>
+            `;
+
+            // Set initial values for update dropdowns
+            document.getElementById('update-order-status').value = statusOrder;
+            document.getElementById('update-payment-status').value = statusPayment;
+
+            // Order Items
+            const itemsContainer = document.getElementById('modal-order-items');
+            itemsContainer.innerHTML = '';
+            items.forEach(item => {
+                const row = `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-light rounded-3 p-1" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="image" size="16" class="text-muted"></i>
+                                </div>
+                                <span class="small fw-bold">${item.name}</span>
+                            </div>
+                        </td>
+                        <td class="small">$${item.price.toFixed(2)}</td>
+                        <td class="small">${item.qty}</td>
+                        <td class="small fw-bold text-end">$${(item.price * item.qty).toFixed(2)}</td>
+                    </tr>
+                `;
+                itemsContainer.insertAdjacentHTML('beforeend', row);
+            });
+
+            // Re-initialize Lucide icons for the newly added elements
+            lucide.createIcons();
+        });
+    });
+
+    // Save Status Logic
+    document.getElementById('save-status-btn').addEventListener('click', () => {
+        const orderId = document.getElementById('modal-order-id').innerText;
+        const newOrderStatus = document.getElementById('update-order-status').value;
+        const newPaymentStatus = document.getElementById('update-payment-status').value;
+
+        // Update modal badges
+        document.getElementById('modal-status-badges').innerHTML = `
+            <span class="status-badge ${newPaymentStatus.toLowerCase()}">${newPaymentStatus}</span>
+            <span class="status-badge ${newOrderStatus.toLowerCase()}">${newOrderStatus}</span>
+        `;
+
+        // Update table row
+        const rowId = `order-row-${orderId.replace('#', '')}`;
+        const row = document.getElementById(rowId);
+        if (row) {
+            row.querySelector('.payment-status-cell').innerHTML = `<span class="status-badge ${newPaymentStatus.toLowerCase()}">${newPaymentStatus}</span>`;
+            row.querySelector('.order-status-cell').innerHTML = `<span class="status-badge ${newOrderStatus.toLowerCase()}">${newOrderStatus}</span>`;
+
+            // Update button data attributes
+            const btn = row.querySelector('.view-order-btn');
+            btn.setAttribute('data-status-payment', newPaymentStatus);
+            btn.setAttribute('data-status-order', newOrderStatus);
+        }
+
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('viewOrderModal'));
+        modal.hide();
+
+        alert('Order status updated successfully!');
+    });
+</script>
+{% endblock %}

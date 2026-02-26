@@ -1,0 +1,456 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Edit Product | SNEAKO Admin{% endblock %}
+{% block active_products %}active{% endblock %}
+{% block page_title %}Edit Product{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            <form action="{% url 'adminpanel:edit_product' product.id %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Tabs for the Form -->
+                <ul class="nav nav-pills mb-4 gap-2" id="editProductTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active rounded-pill px-3" id="edit-general-tab" data-bs-toggle="pill"
+                            data-bs-target="#edit-general" type="button">General</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-pill px-3" id="edit-media-tab" data-bs-toggle="pill"
+                            data-bs-target="#edit-media" type="button">Media</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-pill px-3" id="edit-details-tab" data-bs-toggle="pill"
+                            data-bs-target="#edit-details" type="button">Details</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-pill px-3" id="edit-specs-tab" data-bs-toggle="pill"
+                            data-bs-target="#edit-specs" type="button">Specs & Sizes</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="editProductTabContent">
+                    <!-- General Info Section -->
+                    <div class="tab-pane fade show active" id="edit-general" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Product Name</label>
+                            <input type="text" name="name" class="form-control rounded-pill px-3"
+                                value="{{ product.name }}" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Brand</label>
+                                <select name="brand" class="form-select rounded-pill px-3">
+                                    <option {% if product.brand == 'Nike' %}selected{% endif %}>Nike</option>
+                                    <option {% if product.brand == 'Adidas' %}selected{% endif %}>Adidas</option>
+                                    <option {% if product.brand == 'Puma' %}selected{% endif %}>Puma</option>
+                                    <option {% if product.brand == 'Reebok' %}selected{% endif %}>Reebok</option>
+                                    <option {% if product.brand == 'New Balance' %}selected{% endif %}>New Balance
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Gender</label>
+                                <select name="gender" class="form-select rounded-pill px-3">
+                                    <option {% if product.gender == 'Men' %}selected{% endif %}>Men</option>
+                                    <option {% if product.gender == 'Women' %}selected{% endif %}>Women</option>
+                                    <option {% if product.gender == 'Kids' %}selected{% endif %}>Kids</option>
+                                    <option {% if product.gender == 'Unisex' %}selected{% endif %}>Unisex</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">SKU</label>
+                                <input type="text" name="sku" class="form-control rounded-pill px-3"
+                                    value="{{ product.sku }}">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Current Price ($)</label>
+                                <input type="number" name="price" step="0.01" class="form-control rounded-pill px-3"
+                                    value="{{ product.price }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Original Price ($)</label>
+                                <input type="number" name="original_price" step="0.01"
+                                    class="form-control rounded-pill px-3"
+                                    value="{{ product.original_price|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Total Stock Quantity (Calculated from
+                                Sizes)</label>
+                            <input type="number" name="stock" class="form-control rounded-pill px-3"
+                                value="{{ product.stock }}" readonly>
+                            <small class="text-muted">This field is now handled per size in the "Specs & Sizes"
+                                tab.</small>
+                        </div>
+                    </div>
+
+                    <!-- Media Section -->
+                    <div class="tab-pane fade" id="edit-media" role="tabpanel">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted">Main Product Image</label>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                {% if product.image %}
+                                <img src="{{ product.image.url }}" class="rounded shadow-sm"
+                                    style="width: 100px; height: 100px; object-fit: cover; border: 1px solid #dee2e6;">
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <input type="file" name="image" class="form-control rounded-pill px-3"
+                                        accept="image/*">
+                                    <p class="small text-muted mt-1 mb-0">Replace main image (Shown only in
+                                        Shop/Listing)</p>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted">Main Image URL</label>
+                                <input type="url" name="main_image_url" class="form-control rounded-pill px-3"
+                                    value="{{ product.image_url|default:'' }}" placeholder="https://...">
+                            </div>
+
+                            <hr class="my-4">
+
+                            <label class="form-label small fw-bold text-muted">Sub Photos (Gallery) Management</label>
+
+                            <div class="gallery-grid mb-4">
+                                <!-- Main Image Indicator (Optional, but good for context) -->
+                                <div class="gallery-item main-indicator">
+                                    <div class="item-inner">
+                                        <img src="{% if product.image %}{{ product.image.url }}{% else %}{{ product.image_url }}{% endif %}"
+                                            alt="Main Image">
+                                        <span class="badge bg-dark">MAIN</span>
+                                    </div>
+                                </div>
+
+                                <!-- Sub Image Thumbs -->
+                                {% for img in product.images.all %}
+                                <div class="gallery-item">
+                                    <div class="item-inner">
+                                        <img src="{% if img.image %}{{ img.image.url }}{% else %}{{ img.image_url }}{% endif %}"
+                                            alt="Sub Image">
+                                        <a href="{% url 'adminpanel:delete_product_image' img.id %}" class="delete-btn"
+                                            onclick="return confirm('Delete this gallery image?')">
+                                            <i data-lucide="trash-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                                <!-- Add More Placeholder -->
+                                <div class="gallery-item add-more"
+                                    onclick="document.getElementById('fileElem').click()">
+                                    <div
+                                        class="item-inner d-flex flex-column align-items-center justify-content-center">
+                                        <i data-lucide="plus-circle" size="24"></i>
+                                        <span class="small mt-1">Add Image</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-muted">Upload New Images</label>
+                                    <div class="upload-area rounded-4 p-4 text-center" id="drop-area"
+                                        onclick="document.getElementById('fileElem').click()"
+                                        style="border: 2px dashed #dee2e6; cursor: pointer; background: #f8f9fa; transition: 0.3s;">
+                                        <i data-lucide="upload-cloud" size="32" class="text-muted mb-2"></i>
+                                        <p class="small text-muted mb-0">Click or drag images to add to gallery</p>
+                                        <input type="file" name="images" id="fileElem" accept="image/*" class="d-none"
+                                            multiple onchange="handleFiles(this.files)">
+                                    </div>
+                                    <div id="gallery-preview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                                </div>
+                            </div>
+
+                            <div class="row g-2">
+                                <label class="form-label small fw-bold text-muted">Or Add via URLs</label>
+                                <div class="col-md-6">
+                                    <input type="url" name="gallery_url_1"
+                                        class="form-control form-control-sm rounded-pill px-3"
+                                        placeholder="Image URL 1">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="url" name="gallery_url_2"
+                                        class="form-control form-control-sm rounded-pill px-3"
+                                        placeholder="Image URL 2">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="url" name="gallery_url_3"
+                                        class="form-control form-control-sm rounded-pill px-3"
+                                        placeholder="Image URL 3">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="url" name="gallery_url_4"
+                                        class="form-control form-control-sm rounded-pill px-3"
+                                        placeholder="Image URL 4">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details Section -->
+                    <div class="tab-pane fade" id="edit-details" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Short Tagline</label>
+                            <input type="text" name="short_tagline" class="form-control rounded-pill px-3"
+                                value="{{ product.short_tagline|default:'' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Description</label>
+                            <textarea name="description" class="form-control" rows="6"
+                                style="border-radius: 15px;">{{ product.description|default:'' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Specs & Sizes Section -->
+                    <div class="tab-pane fade" id="edit-specs" role="tabpanel">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Model</label>
+                                <input type="text" name="model_name" class="form-control rounded-pill px-3"
+                                    value="{{ product.model_name|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Color</label>
+                                <input type="text" name="color" class="form-control rounded-pill px-3"
+                                    value="{{ product.color|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Material</label>
+                                <input type="text" name="material" class="form-control rounded-pill px-3"
+                                    value="{{ product.material|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Sole</label>
+                                <input type="text" name="sole" class="form-control rounded-pill px-3"
+                                    value="{{ product.sole|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Closure</label>
+                            <input type="text" name="closure" class="form-control rounded-pill px-3"
+                                value="{{ product.closure|default:'' }}">
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label small fw-bold text-muted mb-0">Available Sizes (UK)</label>
+                                <div class="input-group input-group-sm" style="width: 200px;">
+                                    <input type="text" id="new-size-val" class="form-control"
+                                        placeholder="Add New Size">
+                                    <button class="btn btn-dark" type="button" onclick="addSize()">Add</button>
+                                </div>
+                            </div>
+                            <div class="row g-3" id="sizes-container">
+                                {% for size in sizes %}
+                                <div class="col-6 col-md-4">
+                                    <div class="card border p-2 h-100 shadow-sm" style="border-radius: 12px;">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="sizes"
+                                            value="{{ size.id }}"
+                                            id="editSize{{ size.id }}"
+                                            {% if size.id in selected_size_ids %}checked{% endif %}>
+
+                                            <label class="form-check-label fw-bold small" for="editSize{{ size.id }}">
+                                                Size {{ size.value }}
+                                            </label>
+                                        </div>
+
+                                        <input type="number" name="stock_{{ size.id }}"
+                                            class="form-control form-control-sm rounded-pill px-3" placeholder="Stock"
+                                            min="0"
+                                            value="{% for ps in product.product_sizes.all %}{% if ps.size_id == size.id %}{{ ps.stock }}{% endif %}{% endfor %}">
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12 text-center py-3">
+                                    <p class="text-muted small mb-2">No sizes found in the database.</p>
+                                    <a href="/admin/products/size/"
+                                        class="btn btn-sm btn-outline-dark rounded-pill px-3" target="_blank">
+                                        <i data-lucide="plus" size="14"></i> Add Sizes in Admin
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                    <a href="{% url 'adminpanel:products' %}" class="btn btn-light rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-dark rounded-pill px-4 flex-grow-1 fw-bold">Update
+                        Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+
+    /* New Gallery Grid Styles */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+    }
+
+    .gallery-item {
+        position: relative;
+        aspect-ratio: 1/1;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #eee;
+        background: #fff;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .gallery-item .item-inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .gallery-item .badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        font-size: 0.6rem;
+        padding: 4px 8px;
+    }
+
+    .gallery-item .delete-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        opacity: 0;
+        text-decoration: none;
+    }
+
+    .gallery-item:hover .delete-btn {
+        opacity: 1;
+    }
+
+    .gallery-item .delete-btn:hover {
+        background: #dc3545;
+        transform: scale(1.1);
+    }
+
+    .gallery-item .delete-btn i {
+        width: 14px;
+        height: 14px;
+    }
+
+    .gallery-item.add-more {
+        border: 2px dashed #ddd;
+        background: #fcfcfc;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .gallery-item.add-more:hover {
+        border-color: #000;
+        color: #000;
+        background: #f8f9fa;
+    }
+
+    .upload-area:hover {
+        border-color: #000 !important;
+        background-color: #f1f3f5 !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function handleFiles(files) {
+        const preview = document.getElementById('gallery-preview');
+        preview.innerHTML = '';
+
+        [...files].forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.classList.add('preview-thumb');
+                preview.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Dynamic Size Addition
+    function addSize() {
+        const val = document.getElementById('new-size-val').value;
+        if (!val) return;
+
+        const formData = new FormData();
+        formData.append('value', val);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("{% url 'adminpanel:add_size' %}", {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const container = document.getElementById('sizes-container');
+                    const html = `
+                    <div class="col-6 col-md-4">
+                        <div class="card border p-2 h-100 shadow-sm" style="border-radius: 12px;">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="sizes" value="${data.id}" id="editSize${data.id}" checked>
+                                <label class="form-check-label fw-bold small" for="editSize${data.id}">Size ${data.value}</label>
+                            </div>
+                            <input type="number" name="stock_${data.id}" class="form-control form-control-sm rounded-pill px-3" placeholder="Stock" min="0">
+                        </div>
+                    </div>`;
+                    // Remove empty message if any
+                    const emptyMsg = container.querySelector('.text-center.py-3');
+                    if (emptyMsg) emptyMsg.remove();
+                    container.insertAdjacentHTML('beforeend', html);
+                    document.getElementById('new-size-val').value = '';
+                } else {
+                    alert(data.message || 'Error adding size');
+                }
+            });
+    }
+</script>
+{% endblock %}

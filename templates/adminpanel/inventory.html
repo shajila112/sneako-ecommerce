@@ -1,0 +1,195 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Inventory Management | SNEAKO Admin{% endblock %}
+{% block active_inventory %}active{% endblock %}
+{% block page_title %}Inventory Management{% endblock %}
+
+{% block content %}
+<!-- Inventory Stats -->
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i data-lucide="package"></i>
+        </div>
+        <div class="stat-info">
+            <span>Total Items</span>
+            <h3>{{ total_stock_count|default:"1,240" }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i data-lucide="user"></i>
+        </div>
+        <div class="stat-info">
+            <span>Men's Stock</span>
+            <h3>{{ mens_stock_count|default:580 }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon pink">
+            <i data-lucide="user-2"></i>
+        </div>
+        <div class="stat-info">
+            <span>Women's Stock</span>
+            <h3>{{ womens_stock_count|default:420 }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i data-lucide="alert-triangle"></i>
+        </div>
+        <div class="stat-info">
+            <span>Low Stock</span>
+            <h3>{{ low_stock_count|default:12 }} Items</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Tabs -->
+<div class="admin-card overflow-hidden">
+    <div class="card-header pb-0 border-0">
+        <ul class="nav nav-tabs border-0" id="inventoryTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold px-4 py-3 border-0 bg-transparent text-muted" id="overview-tab"
+                    data-bs-toggle="tab" data-bs-target="#overview" type="button"
+                    style="border-bottom: 3px solid transparent !important;">Overview</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold px-4 py-3 border-0 bg-transparent text-muted" id="by-brand-tab"
+                    data-bs-toggle="tab" data-bs-target="#by-brand" type="button"
+                    style="border-bottom: 3px solid transparent !important;">By Brand</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold px-4 py-3 border-0 bg-transparent text-muted" id="by-gender-tab"
+                    data-bs-toggle="tab" data-bs-target="#by-gender" type="button"
+                    style="border-bottom: 3px solid transparent !important;">By Gender</button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tab-content" id="inventoryTabContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="p-4 border-bottom bg-light bg-opacity-50">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 rounded-pill-start px-3">
+                                <i data-lucide="search" size="14"></i>
+                            </span>
+                            <input type="text" id="inventory-search"
+                                class="form-control border-start-0 rounded-pill-end ps-0"
+                                placeholder="Search product name...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="brand-select" class="form-select form-select-sm rounded-pill px-3">
+                            <option value="all">All Brands</option>
+                            {% for brand in brands %}
+                            <option>{{ brand }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="gender-select" class="form-select form-select-sm rounded-pill px-3">
+                            <option value="all">All Genders</option>
+                            <option>Men</option>
+                            <option>Women</option>
+                            <option>Kids</option>
+                            <option>Unisex</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-sm btn-dark w-100 rounded-pill px-3">Filter</button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table-admin mb-0">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Brand</th>
+                            <th>Gender</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in inventory_products %}
+                        <tr class="inventory-row" data-brand="{{ product.brand }}" data-gender="{{ product.gender }}">
+                            <td class="fw-bold">{{ product.name }}</td>
+                            <td>{{ product.brand }}</td>
+                            <td>{{ product.gender }}</td>
+                            <td class="stock-cell">{{ product.stock }}</td>
+                            <td>
+                                {% if product.stock < 10 %} <span class="stock-badge low">Low Stock Warning</span>
+                                    {% else %}
+                                    <span class="stock-badge ok">Healthy Stock</span>
+                                    {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-dark px-3 rounded-pill hov-dark restock-btn"
+                                    data-bs-toggle="modal" data-bs-target="#restockModal"
+                                    data-product="{{ product.name }}" data-stock="{{ product.stock }}">Restock</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No products in inventory.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- By Brand Tab (Placeholder logic) -->
+        <div class="tab-pane fade" id="by-brand" role="tabpanel">
+            <div class="p-4">
+                <div class="row g-4">
+                    <!-- Brands will be listed here -->
+                    <div class="col-md-12 text-center py-5 text-muted">
+                        <i data-lucide="info" size="48" class="mb-3"></i>
+                        <p>Brand-wise inventory breakdown data will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- By Gender Tab (Placeholder logic) -->
+        <div class="tab-pane fade" id="by-gender" role="tabpanel">
+            <div class="p-4">
+                <div class="row g-4">
+                    <!-- Gender stats will be listed here -->
+                    <div class="col-md-12 text-center py-5 text-muted">
+                        <i data-lucide="info" size="48" class="mb-3"></i>
+                        <p>Gender-wise inventory breakdown data will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle Restock Modal population
+    document.querySelectorAll('.restock-btn, .update-stock-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const product = btn.getAttribute('data-product');
+            const stock = btn.getAttribute('data-stock');
+
+            // Check which modal is being opened
+            const restockModal = document.getElementById('restockModal');
+            if (restockModal && restockModal.classList.contains('show')) {
+                document.getElementById('restock-product-name').innerText = product;
+                document.getElementById('restock-current-stock').innerText = stock;
+            }
+        });
+    });
+</script>
+{% endblock %}

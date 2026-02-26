@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Secure Checkout | SNEAKO{% endblock %}
+
+{% block content %}
+<div class="checkout-page-root"
+    style="background-color: #ffffff; color: #000; min-height: 100vh; font-family: 'Inter', sans-serif;">
+    <main class="checkout-wrapper py-5">
+        <div class="container" style="max-width: 1100px;">
+            <h1 style="font-weight: 950; font-size: 2.5rem; letter-spacing: -2px; text-transform: uppercase;"
+                class="mb-5">
+                <span style="color: #000;">SECURE</span> <span style="color: #000;">CHECKOUT</span>
+            </h1>
+
+            <form id="checkout-form" class="row g-4" action="{% url 'cart:checkout' %}" method="POST">
+                {% csrf_token %}
+
+                <!-- Left Col: Details -->
+                <div class="col-lg-7">
+                    <!-- Delivery Address -->
+                    <div class="sneako-card mb-4"
+                        style="background: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2
+                                style="font-weight: 800; font-size: 1.1rem; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
+                                Delivery Address</h2>
+                            <a href="{% url 'accounts:address_list' %}"
+                                style="color: #000; font-size: 0.7rem; font-weight: 800; text-decoration: none; text-transform: uppercase;">Manage
+                                Addresses</a>
+                        </div>
+
+                        <div class="address-list d-flex flex-column gap-3 mb-4">
+                            {% for address in saved_addresses %}
+                            <div class="address-box p-3 rounded-3 position-relative"
+                                style="background: #fafafa; border: 2px solid {% if address.is_default %}#000000{% else %}#eeeeee{% endif %}; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;"
+                                data-phone="{{ address.phone }}" onclick="selectAddress('{{ address.id }}', this)">
+                                <div class="selection-indicator"
+                                    style="position: absolute; top: 15px; right: 15px; width: 18px; height: 18px; border: 2px solid {% if address.is_default %}#000000{% else %}#dddddd{% endif %}; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    {% if address.is_default %}<div
+                                        style="width: 10px; height: 10px; background: #000000; border-radius: 50%;">
+                                    </div>{% endif %}
+                                </div>
+                                <h6 style="font-weight: 800; margin-bottom: 4px;">
+                                    {{ address.full_name }}
+                                    {% if address.is_default %}
+                                    <span style="color: #888; font-weight: 400; font-size: 0.75rem;">(Default)</span>
+                                    {% endif %}
+                                </h6>
+                                <p style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">{{ address.phone }}</p>
+                                <p style="font-size: 0.85rem; color: #444; margin-bottom: 0; line-height: 1.4;">
+                                    {{ address.street_address }}<br>
+                                    {{ address.city }}, {{ address.state }} - {{ address.zip_code }}
+                                </p>
+                                <input class="address-radio d-none" type="radio" name="address_id"
+                                    value="{{ address.id }}" {% if address.is_default %}checked{% endif %}>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-4 border rounded-3"
+                                style="border-style: dashed !important; border-color: #ccc !important;">
+                                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0;">No saved addresses found.
+                                </p>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <a href="{% url 'accounts:add_address' %}?next={% url 'cart:checkout' %}"
+                            style="background: transparent; border: 1px dashed #cccccc; color: #777777; width: 100%; padding: 1rem; border-radius: 10px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i data-lucide="plus" style="width: 18px;"></i>
+                            <span>Add New Address</span>
+                        </a>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="sneako-card mb-4"
+                        style="background: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
+                        <h2
+                            style="font-weight: 800; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 24px; letter-spacing: 0.5px;">
+                            Contact Information</h2>
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label
+                                    style="font-size: 0.7rem; font-weight: 800; color: #999; text-transform: uppercase; display: block; margin-bottom: 8px;">Email
+                                    Address</label>
+                                <input type="text" class="form-control"
+                                    style="background: #f5f5f5; border: 1px solid #eeeeee; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.9rem;"
+                                    value="{{ request.user.email }}" readonly>
+                            </div>
+                            <div class="col-md-5">
+                                <label
+                                    style="font-size: 0.7rem; font-weight: 800; color: #999; text-transform: uppercase; display: block; margin-bottom: 8px;">Preferred
+                                    Phone</label>
+                                <input type="text" id="preferred-phone" name="phone" class="form-control"
+                                    style="background: #ffffff; border: 1px solid #eeeeee; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.9rem;"
+                                    value="{{ request.user.profile.phone|default:'' }}" placeholder="1234567890">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Col: Summary -->
+                <div class="col-lg-5">
+                    <div class="order-summary-sticky" style="position: sticky; top: 100px;">
+                        <div class="sneako-card"
+                            style="background: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
+                            <h2
+                                style="font-weight: 800; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 24px; letter-spacing: 0.5px;">
+                                Order Summary</h2>
+
+                            <div class="summary-items mb-4"
+                                style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                                {% for item in cart.items.all %}
+                                <div class="d-flex align-items-center gap-3 py-3 border-bottom"
+                                    style="border-color: #f7f7f7 !important;">
+                                    <div
+                                        style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 8px; overflow: hidden; border: 1px solid #eee; flex-shrink: 0;">
+                                        {% if item.product.image %}<img src="{{ item.product.image.url }}"
+                                            style="width:100%; height:100%; object-fit:cover;">{% else %}<div
+                                            class="d-flex align-items-center justify-content-center h-100 text-muted"
+                                            style="font-size: 0.6rem;">SNEAKO</div>{% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0; color: #000;">
+                                            {{ item.product.name }}</h6>
+                                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 0;">
+                                            Qty: {{ item.quantity }}
+                                        </p>
+                                    </div>
+                                    <div style="font-weight: 800; font-size: 0.95rem;">₹{{ item.get_total_item_price }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Coupons Section -->
+                            <div
+                                style="background: #fafafa; border: 1px solid #f0f0f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 24px;">
+                                <h6
+                                    style="font-size: 0.65rem; font-weight: 900; color: #bbb; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="ticket" style="width: 12px; transform: rotate(-45deg);"></i>
+                                    AVAILABLE COUPONS
+                                </h6>
+
+                                <div class="coupon-stack d-flex flex-column gap-2">
+                                    {% for coupon in available_coupons %}
+                                    <div class="p-3 rounded-3 d-flex justify-content-between align-items-center"
+                                        style="background: #ffffff; border: 1px solid #eeeeee;">
+                                        <div>
+                                            <div style="color: #000; font-weight: 900; font-size: 0.95rem;">
+                                                {{ coupon.code }}
+                                            </div>
+                                            <div style="font-size: 0.65rem; color: #999;">
+                                                {{ coupon.discount_percentage }}% OFF • Min Order ₹{{
+                                                coupon.minimum_amount }}
+                                                {% if coupon.is_first_order_only %}
+                                                <span class="ms-1" style="color: #e67e22; font-weight: 800;">(First
+                                                    Order Only)</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if applied_coupon and applied_coupon.code == coupon.code %}
+                                        <button type="button" class="btn btn-sm"
+                                            style="background: #2ecc71; color: #fff; border-radius: 50px; font-weight: 800; padding: 4px 14px; font-size: 0.75rem; border: none; cursor: default;">Applied</button>
+                                        {% else %}
+                                        <button type="button" class="btn btn-sm apply-coupon-btn"
+                                            data-code="{{ coupon.code }}"
+                                            style="background: #000000; color: #fff; border-radius: 50px; font-weight: 800; padding: 4px 14px; font-size: 0.75rem; border: none;">Apply</button>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                                {% if applied_coupon %}
+                                <div class="mt-3 p-2 px-3 rounded-2 d-flex justify-content-between align-items-center"
+                                    style="background: rgba(46, 204, 113, 0.08); border: 1px solid #2ecc71;">
+                                    <span style="font-size: 0.75rem; color: #2ecc71; font-weight: 700;">
+                                        <span
+                                            style="background: #000; color: #fff; padding: 1px 6px; border-radius: 4px; margin-right: 5px; font-weight: 800;">
+                                            {{ applied_coupon.code }}
+                                        </span>
+                                        ₹{{ discount }} Discount Applied
+                                    </span>
+                                    <a href="{% url 'cart:remove_coupon' %}"
+                                        style="font-size: 0.75rem; color: #000; font-weight: 800; text-decoration: underline;">Remove</a>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Price Breakdown -->
+                            <div class="pricing-details mb-4">
+                                <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                    <span style="color: #888;">Subtotal</span>
+                                    <span style="font-weight: 700;">₹{{ cart_total }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2"
+                                    style="font-size: 0.9rem; color: #2ecc71;">
+                                    <span>Offer Savings</span>
+                                    <span style="font-weight: 700;">-₹0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2"
+                                    style="font-size: 0.9rem; color: #2ecc71;">
+                                    <span>Coupon Discount</span>
+                                    <span style="font-weight: 700;">-₹{{ discount|default:"0.00" }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3" style="font-size: 0.9rem;">
+                                    <span style="color: #888;">Shipping</span>
+                                    <span style="color: #2ecc71; font-weight: 800;">FREE</span>
+                                </div>
+                                <div class="pt-3 border-top d-flex justify-content-between align-items-center"
+                                    style="border-color: #f0f0f0 !important;">
+                                    <span style="font-weight: 800; font-size: 1.1rem; color: #000;">Total Amount</span>
+                                    <span style="font-weight: 950; font-size: 1.6rem; color: #000;">
+                                        ₹{{ final_total }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button type="submit"
+                                style="background: #000000; color: #fff; border: none; width: 100%; border-radius: 12px; padding: 1.1rem; font-weight: 950; font-size: 1.1rem; text-transform: uppercase; transition: 0.2s; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);"
+                                onmouseover="this.style.background='#333333'; this.style.transform='translateY(-2px)';"
+                                onmouseout="this.style.background='#000000'; this.style.transform='translateY(0)';">
+                                Continue to Payment
+                            </button>
+
+                            <div class="d-flex justify-content-center gap-4 mt-4 pt-3 border-top"
+                                style="border-color: #f7f7f7 !important; opacity: 0.6;">
+                                <div
+                                    style="font-size: 0.65rem; font-weight: 800; color: #999; display: flex; align-items: center; gap: 5px;">
+                                    <i data-lucide="shield-check" style="width: 12px; color: #2ecc71;"></i> SECURE
+                                </div>
+                                <div
+                                    style="font-size: 0.65rem; font-weight: 800; color: #999; display: flex; align-items: center; gap: 5px;">
+                                    <i data-lucide="lock" style="width: 12px; color: #2ecc71;"></i> SSL ENCRYPTED
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+    function selectAddress(id, element) {
+        document.querySelectorAll('.address-box').forEach(box => {
+            box.style.borderColor = '#eeeeee';
+            const indicator = box.querySelector('.selection-indicator');
+            indicator.style.borderColor = '#dddddd';
+            indicator.innerHTML = '';
+        });
+        element.style.borderColor = '#000000';
+        const indicator = element.querySelector('.selection-indicator');
+        indicator.style.borderColor = '#000000';
+        indicator.innerHTML = '<div style="width: 10px; height: 10px; background: #000000; border-radius: 50%;"></div>';
+        element.querySelector('.address-radio').checked = true;
+
+        // Auto-update phone number
+        const phone = element.getAttribute('data-phone');
+        const phoneInput = document.getElementById('preferred-phone');
+        if (phone && phoneInput) {
+            phoneInput.value = phone;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+        document.querySelectorAll('.apply-coupon-btn').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const code = this.dataset.code;
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{% url "cart:apply_coupon" %}';
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = '{{ csrf_token }}';
+                const codeInput = document.createElement('input');
+                codeInput.type = 'hidden';
+                codeInput.name = 'coupon_code';
+                codeInput.value = code;
+                form.appendChild(csrfInput);
+                form.appendChild(codeInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    });
+</script>
+{% endblock %}

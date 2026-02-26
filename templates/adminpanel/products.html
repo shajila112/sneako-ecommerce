@@ -1,0 +1,494 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Manage Products | SNEAKO Admin{% endblock %}
+{% block active_products %}active{% endblock %}
+{% block page_title %}Product Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-area {
+        border: 2px dashed #dee2e6;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: #f8f9fa;
+    }
+
+    .upload-area:hover {
+        background: #e9ecef;
+        border-color: #adb5bd;
+    }
+
+    .hr-text {
+        display: flex;
+        align-items: center;
+        text-align: center;
+    }
+
+    .hr-text::before,
+    .hr-text::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .hr-text:not(:empty)::before {
+        margin-right: .5em;
+    }
+
+    .hr-text:not(:empty)::after {
+        margin-left: .5em;
+    }
+
+    .preview-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-dark btn-sm rounded-pill px-3 me-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
+    <i data-lucide="plus" size="16" class="me-1"></i> Add Product
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="card-header">
+        <h4>All Products</h4>
+        <form method="GET" action="{% url 'adminpanel:products' %}" class="d-flex gap-2 align-items-center">
+            <select name="brand" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
+                <option value="all" {% if current_brand == 'all' or not current_brand %}selected{% endif %}>
+                    All Brands
+                </option>
+                <option value="Nike" {% if current_brand == 'Nike' %}selected{% endif %}>Nike</option>
+                <option value="Adidas" {% if current_brand == 'Adidas' %}selected{% endif %}>Adidas</option>
+                <option value="Puma" {% if current_brand == 'Puma' %}selected{% endif %}>Puma</option>
+                <option value="Reebok" {% if current_brand == 'Reebok' %}selected{% endif %}>Reebok</option>
+                <option value="New Balance" {% if current_brand == 'New Balance' %}selected{% endif %}>New Balance
+                </option>
+            </select>
+            <select name="gender" class="form-select form-select-sm" style="width: 150px;"
+                onchange="this.form.submit()">
+                <option value="all" {% if current_gender == 'all' or not current_gender %}selected{% endif %}>
+                    All Genders
+                </option>
+
+                <option value="Men" {% if current_gender == 'Men' %}selected{% endif %}>Men</option>
+
+                <option value="Women" {% if current_gender == 'Women' %}selected{% endif %}>Women</option>
+
+                <option value="Kids" {% if current_gender == 'Kids' %}selected{% endif %}>Kids</option>
+
+                <option value="Unisex" {% if current_gender == 'Unisex' %}selected{% endif %}>Unisex</option>
+
+            </select>
+            <div class="input-group input-group-sm" style="width: 250px;">
+                <input type="text" name="search" class="form-control" placeholder="Search products..."
+                    value="{{ current_search|default:'' }}">
+                <button class="btn btn-outline-dark" type="submit">
+                    <i data-lucide="search" size="14"></i>
+                </button>
+            </div>
+            {% if current_brand or current_gender or current_search %}
+            <a href="{% url 'adminpanel:products' %}" class="btn btn-sm btn-light border text-muted"
+                title="Clear Filters">
+                <i data-lucide="x" size="14"></i>
+            </a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table-admin">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Brand</th>
+                    <th>Gender</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr data-brand="{{ product.brand }}" data-gender="{{ product.gender }}">
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            {% if product.image %}
+                            <img src="{{ product.image.url }}" class="product-thumb-admin">
+                            {% else %}
+                            <img src="{% static 'images/no-image.png' %}" class="product-thumb-admin">
+                            {% endif %}
+                            <div>
+                                <p class="m-0 fw-bold" style="font-size: 0.9rem;">
+                                    {{ product.name }}
+                                </p>
+                                <p class="m-0 text-muted" style="font-size: 0.75rem;">
+                                    SKU: {{ product.sku }}
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ product.brand }}</td>
+                    <td>{{ product.gender }}</td>
+                    <td>${{ product.price }}</td>
+                    <td>
+                        {% if product.stock < 5 %} <span class="stock-badge low">{{ product.stock }} Left</span>
+                            {% else %}
+                            <span class="stock-badge ok">{{ product.stock }} In Stock</span>
+                            {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'adminpanel:edit_product' product.id %}"
+                                class="btn btn-sm btn-light border">
+                                <i data-lucide="edit-2" size="14"></i>
+                            </a>
+
+                            <button class="btn btn-sm btn-light border text-danger delete-product-btn"
+                                data-bs-toggle="modal" data-bs-target="#deleteProductModal" data-pk="{{ product.id }}"
+                                data-name="{{ product.name }}">
+                                <i data-lucide="trash-2" size="14"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        No products found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold">Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{% url 'adminpanel:products' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <!-- Tabs for the Form -->
+                    <ul class="nav nav-pills mb-4 gap-2" id="productFormTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active rounded-pill px-3" id="general-tab" data-bs-toggle="pill"
+                                data-bs-target="#general" type="button">General</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link rounded-pill px-3" id="media-tab" data-bs-toggle="pill"
+                                data-bs-target="#media" type="button">Media</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link rounded-pill px-3" id="details-tab" data-bs-toggle="pill"
+                                data-bs-target="#details" type="button">Details</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link rounded-pill px-3" id="specs-tab" data-bs-toggle="pill"
+                                data-bs-target="#specs" type="button">Specs & Sizes</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="productFormTabContent">
+                        <!-- General Info Section -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Product Name</label>
+                                <input type="text" name="name" class="form-control rounded-pill px-3"
+                                    placeholder="e.g. Nike Air Jordan" required>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-muted">Brand</label>
+                                    <select name="brand" class="form-select rounded-pill px-3">
+                                        <option>Nike</option>
+                                        <option>Adidas</option>
+                                        <option>Puma</option>
+                                        <option>Reebok</option>
+                                        <option>New Balance</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-muted">Gender</label>
+                                    <select name="gender" class="form-select rounded-pill px-3">
+                                        <option>Men</option>
+                                        <option>Women</option>
+                                        <option>Kids</option>
+                                        <option>Unisex</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-muted">SKU (Stock Keeping Unit)</label>
+                                    <input type="text" name="sku" class="form-control rounded-pill px-3"
+                                        placeholder="NK-AJ-WHT">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Current Price ($)</label>
+                                    <input type="number" name="price" step="0.01" class="form-control rounded-pill px-3"
+                                        placeholder="0.00" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Original Price ($)</label>
+                                    <input type="number" name="original_price" step="0.01"
+                                        class="form-control rounded-pill px-3" placeholder="If discounted">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Stock Quantity</label>
+                                <input type="number" name="stock" class="form-control rounded-pill px-3"
+                                    placeholder="Quantity" required>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="media" role="tabpanel">
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted">Upload Sub Photos (Gallery)</label>
+                                <div class="upload-area rounded-4 p-4 text-center mb-3" id="drop-area"
+                                    onclick="document.getElementById('fileElem').click()"
+                                    style="border: 2px dashed #dee2e6; cursor: pointer; background: #f8f9fa; transition: 0.3s;">
+                                    <i data-lucide="upload-cloud" size="40" class="text-muted mb-2"></i>
+                                    <p class="small text-muted mb-2">Drag and drop images here or click to browse</p>
+                                    <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3">Select
+                                        Files</button>
+                                    <input type="file" name="images" id="fileElem" accept="image/*" class="d-none"
+                                        multiple onchange="handleFiles(this.files)">
+                                </div>
+                                <div id="gallery-preview" class="d-flex flex-wrap gap-2 mb-4">
+                                    <!-- Previews will appear here -->
+                                </div>
+
+                                <div class="hr-text mb-4 text-muted small fw-bold">OR USE IMAGE URLS</div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted">Main Product Image URL</label>
+                                    <input type="url" name="main_image_url" class="form-control rounded-pill px-3"
+                                        placeholder="https://...">
+                                </div>
+
+                                <div class="row g-2">
+                                    <label class="form-label small fw-bold text-muted">Sub Photos (Gallery) URLs</label>
+                                    <div class="col-md-6">
+                                        <input type="url" name="gallery_url_1"
+                                            class="form-control form-control-sm rounded-pill px-3" placeholder="URL 1">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="url" name="gallery_url_2"
+                                            class="form-control form-control-sm rounded-pill px-3" placeholder="URL 2">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="url" name="gallery_url_3"
+                                            class="form-control form-control-sm rounded-pill px-3" placeholder="URL 3">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="url" name="gallery_url_4"
+                                            class="form-control form-control-sm rounded-pill px-3" placeholder="URL 4">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Details Section -->
+                        <div class="tab-pane fade" id="details" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Short Tagline</label>
+                                <input type="text" name="short_tagline" class="form-control rounded-pill px-3"
+                                    placeholder="Catchy phrase about the shoe">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Description</label>
+                                <textarea name="description" class="form-control" rows="4" style="border-radius: 15px;"
+                                    placeholder="Full product description..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Specs & Sizes Section -->
+                        <div class="tab-pane fade" id="specs" role="tabpanel">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Model</label>
+                                    <input type="text" name="model_name" class="form-control rounded-pill px-3"
+                                        placeholder="e.g. Air Max 270">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Color</label>
+                                    <input type="text" name="color" class="form-control rounded-pill px-3"
+                                        placeholder="e.g. White/Red">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Material</label>
+                                    <input type="text" name="material" class="form-control rounded-pill px-3"
+                                        placeholder="e.g. Mesh/Synthetic">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Sole</label>
+                                    <input type="text" name="sole" class="form-control rounded-pill px-3"
+                                        placeholder="e.g. Rubber/Air Unit">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Closure</label>
+                                <input type="text" name="closure" class="form-control rounded-pill px-3"
+                                    placeholder="e.g. Lace-up">
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold text-muted mb-0">Available Sizes (UK)</label>
+                                    <div class="input-group input-group-sm" style="width: 200px;">
+                                        <input type="text" id="new-size-val" class="form-control"
+                                            placeholder="Add New Size">
+                                        <button class="btn btn-dark" type="button" onclick="addSize()">Add</button>
+                                    </div>
+                                </div>
+                                <div class="row g-3" id="sizes-container">
+                                    {% for size in sizes %}
+                                    <div class="col-6 col-md-4">
+                                        <div class="card border p-2 h-100 shadow-sm" style="border-radius: 12px;">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" name="sizes"
+                                                    value="{{ size.id }}" id="size{{ size.id }}">
+                                                <label class="form-check-label fw-bold small" for="size{{ size.id }}">
+                                                    Size {{ size.value }}
+                                                </label>
+                                            </div>
+                                            <input type="number" name="stock_{{ size.id }}"
+                                                class="form-control form-control-sm rounded-pill px-3"
+                                                placeholder="Stock" min="0">
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12 text-center py-3">
+                                        <p class="text-muted small mb-2">No sizes found in the database.</p>
+                                        <a href="/admin/products/size/"
+                                            class="btn btn-sm btn-outline-dark rounded-pill px-3" target="_blank">
+                                            <i data-lucide="plus" size="14"></i> Add Sizes in Admin
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 border-top pt-3">
+                        <button type="submit" name="add_product"
+                            class="btn btn-dark w-100 rounded-pill py-2 fw-bold">Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center"
+                        style="width: 80px; height: 80px;">
+                        <i data-lucide="alert-triangle" size="40" class="text-danger"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold">Delete Product?</h4>
+                <p class="text-muted">Are you sure you want to delete <span id="delete-product-name"
+                        class="fw-bold text-dark"></span>? This action cannot be undone.</p>
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger rounded-pill px-4" id="confirm-delete-product-btn">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Image Preview Handler for Add
+    function handleFiles(files) {
+        const preview = document.getElementById('gallery-preview');
+        preview.innerHTML = ''; // Clear previous previews
+
+        [...files].forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.classList.add('preview-thumb');
+                preview.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Dynamic Size Addition
+    function addSize() {
+        const val = document.getElementById('new-size-val').value;
+        if (!val) return;
+
+        const formData = new FormData();
+        formData.append('value', val);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("{% url 'adminpanel:add_size' %}", {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const container = document.getElementById('sizes-container');
+                    const html = `
+                    <div class="col-6 col-md-4">
+                        <div class="card border p-2 h-100 shadow-sm" style="border-radius: 12px;">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="sizes" value="${data.id}" id="size${data.id}" checked>
+                                <label class="form-check-label fw-bold small" for="size${data.id}">Size ${data.value}</label>
+                            </div>
+                            <input type="number" name="stock_${data.id}" class="form-control form-control-sm rounded-pill px-3" placeholder="Stock" min="0">
+                        </div>
+                    </div>`;
+                    // Remove empty message if any
+                    const emptyMsg = container.querySelector('.text-center.py-3');
+                    if (emptyMsg) emptyMsg.remove();
+                    container.insertAdjacentHTML('beforeend', html);
+                    document.getElementById('new-size-val').value = '';
+                } else {
+                    alert(data.message || 'Error adding size');
+                }
+            });
+    }
+
+    // Handle Delete Product Modal
+    document.querySelectorAll('.delete-product-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pk = btn.getAttribute('data-pk');
+            const name = btn.getAttribute('data-name');
+            document.getElementById('delete-product-name').innerText = name;
+
+            // Update the delete link href
+            const deleteUrl = "{% url 'adminpanel:delete_product' 0 %}".replace('0', pk);
+            document.getElementById('confirm-delete-product-btn').setAttribute('href', deleteUrl);
+        });
+    });
+</script>
+{% endblock %}

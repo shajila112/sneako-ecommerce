@@ -1,0 +1,24 @@
+{% extends 'auth_base.html' %}
+
+{% block content %}
+<main class="auth-body">
+    <div class="auth-card text-center">
+
+        <div class="auth-logo">SNEAKO</div>
+
+        <div class="success-icon mb-3">
+            ✔
+        </div>
+
+        <h2>Password Reset Successful</h2>
+        <p class="text-muted small">
+            You can now login with your new password.
+        </p>
+
+        <a href="{% url 'accounts:login' %}" class="auth-btn">
+            Back to Login
+        </a>
+
+    </div>
+</main>
+{% endblock %}

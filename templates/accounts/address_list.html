@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Addresses | SNEAKO{% endblock %}
+
+{% block content %}
+<main class="py-5">
+    <div class="container" style="max-width: 800px;">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h1 class="fw-900 mb-0">YOUR <span class="text-dark">ADDRESSES</span></h1>
+            <a href="{% url 'accounts:add_address' %}" class="btn btn-dark rounded-pill px-4">Add New Address</a>
+        </div>
+
+        <div class="address-list d-flex flex-column gap-4">
+            {% for address in addresses %}
+            <div class="sneako-card p-4 shadow-sm position-relative">
+                {% if address.is_default %}
+                <span class="badge bg-dark position-absolute top-0 end-0 m-3 rounded-pill px-3 py-2">Default</span>
+                {% endif %}
+
+                <h5 class="fw-800 mb-1">{{ address.full_name }}</h5>
+                <p class="text-muted mb-3">{{ address.phone }}</p>
+                <p class="mb-4 text-secondary">
+                    {{ address.street_address }}<br>
+                    {{ address.city }}, {{ address.state }} - {{ address.zip_code }}
+                </p>
+
+                <div class="actions d-flex gap-3 pt-3 border-top">
+                    <a href="{% url 'accounts:edit_address' address.pk %}"
+                        class="btn btn-sm btn-outline-dark rounded-pill px-3">Edit</a>
+                    <a href="{% url 'accounts:delete_address' address.pk %}"
+                        class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                        onclick="return confirm('Delete this address?')">Delete</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i data-lucide="map-pin" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+                <h4 class="text-muted">No addresses saved yet</h4>
+                <p class="text-muted mb-4">Add an address to speed up your checkout process.</p>
+                <a href="{% url 'accounts:add_address' %}" class="btn btn-dark rounded-pill px-4">Add Your First
+                    Address</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-5">
+            <a href="{% url 'cart:checkout' %}"
+                class="text-dark fw-700 text-decoration-none d-flex align-items-center gap-2">
+                <i data-lucide="arrow-left" style="width: 18px;"></i>
+                Back to Checkout
+            </a>
+        </div>
+    </div>
+</main>
+
+<style>
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-900 {
+        font-weight: 900;
+        letter-spacing: -1px;
+    }
+
+    .sneako-card {
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid #f1f1f1;
+    }
+</style>
+{% endblock %}

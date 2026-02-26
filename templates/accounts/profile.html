@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Account | SNEAKO{% endblock %}
+
+{% block extra_head %}
+<style>
+    .account-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        margin-bottom: 40px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .profile-image-container {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid #fff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background: #f4f4f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-info h1 {
+        font-weight: 800;
+        margin-bottom: 5px;
+    }
+
+    .profile-info p {
+        color: #71717a;
+        margin: 0;
+    }
+
+    .account-grid {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 40px;
+    }
+
+    .account-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .account-nav-link {
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #18181b;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    .account-nav-link:hover {
+        background: #f4f4f5;
+    }
+
+    .account-nav-link.active {
+        background: #000;
+        color: #fff;
+    }
+
+    .premium-card {
+        background: #fff;
+        border: 1px solid #eef0f2;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        color: #71717a;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .premium-input {
+        border-radius: 8px !important;
+        border: 1px solid #dee2e6 !important;
+        padding: 12px !important;
+        font-size: 0.95rem !important;
+    }
+
+    .save-btn {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 8px;
+        font-weight: 700;
+        width: 100%;
+        margin-top: 20px;
+        transition: 0.2s;
+    }
+
+    .save-btn:hover {
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="account-container">
+    <div class="profile-header">
+        <div class="profile-image-container">
+            {% if user.profile.profile_image %}
+            <img src="{{ user.profile.profile_image.url }}" alt="{{ user.username }}">
+            {% else %}
+            <i data-lucide="user" style="width: 60px; height: 60px; color: #a1a1aa;"></i>
+            {% endif %}
+        </div>
+        <div class="profile-info">
+            <h1>{{ user.first_name }} {{ user.last_name|default:'' }}</h1>
+            <p>{{ user.email }}</p>
+            <p style="font-size: 0.8rem; margin-top: 5px;">Member since {{ user.date_joined|date:"F Y" }}</p>
+        </div>
+    </div>
+
+    <div class="account-grid">
+        <aside class="account-nav">
+            <a href="{% url 'accounts:profile' %}" class="account-nav-link active">
+                <i data-lucide="user" style="width: 18px; margin-right: 10px;"></i> Profile Info
+            </a>
+            <a href="{% url 'accounts:address_list' %}" class="account-nav-link">
+                <i data-lucide="map-pin" style="width: 18px; margin-right: 10px;"></i> My Addresses
+            </a>
+            <a href="#" class="account-nav-link">
+                <i data-lucide="shopping-bag" style="width: 18px; margin-right: 10px;"></i> Order History
+            </a>
+            <a href="{% url 'accounts:logout' %}" class="account-nav-link text-danger">
+                <i data-lucide="log-out" style="width: 18px; margin-right: 10px;"></i> Logout
+            </a>
+        </aside>
+
+        <main class="account-main">
+            <div class="premium-card">
+                <h3 style="font-weight: 800; margin-bottom: 25px;">Edit Profile Details</h3>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">First Name</label>
+                            {{ user_form.first_name }}
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Last Name</label>
+                            {{ user_form.last_name }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Address (Read-only)</label>
+                        {{ user_form.email }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Phone Number</label>
+                            {{ profile_form.phone }}
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Date of Birth</label>
+                            {{ profile_form.date_of_birth }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Short Bio</label>
+                        {{ profile_form.bio }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Update Profile Image</label>
+                        {{ profile_form.profile_image }}
+                    </div>
+
+                    <button type="submit" class="save-btn">Save Changes</button>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

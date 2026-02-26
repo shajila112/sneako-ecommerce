@@ -1,70 +1,254 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}SNEAKO | Premium Branded Sneakers{% endblock %}</title>
 
     <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    {% block extra_head %}{% endblock %}
+
+    <style>
+        :root {
+            --sneako-black: #000;
+            --sneako-gray: #f4f4f5;
+            --sneako-text: #18181b;
+            --sneako-muted: #71717a;
+            --sneako-bg: #fdfdfd;
+        }
+
+        body {
+            background-color: var(--sneako-bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--sneako-text);
+            margin: 0;
+            padding: 0;
+        }
+
+        #main-header {
+            background: #fff;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f1f1;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--sneako-black);
+            text-decoration: none;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+
+        .search-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 400px;
+            background: var(--sneako-gray);
+            border-radius: 50px;
+            padding: 8px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            width: 100%;
+            font-size: 0.9rem;
+            outline: none;
+            color: var(--sneako-text);
+        }
+
+        .search-bar i {
+            color: var(--sneako-muted);
+            width: 18px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .header-action-icon {
+            color: var(--sneako-black);
+            position: relative;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--sneako-black);
+            color: #fff;
+            font-size: 0.65rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .account-btn {
+            background: var(--sneako-black);
+            color: #fff !important;
+            padding: 8px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .account-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* Project wide standard cards */
+        .sneako-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #f1f1f1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- HEADER (ONLY HERE) -->
-<header id="main-header">
-    <div class="container header-container">
-        <a href="{% url 'store:home' %}" class="logo">SNEAKO</a>
-
-        <div class="search-bar">
-            <i data-lucide="search"></i>
-            <input type="text" placeholder="Search sneakers...">
-        </div>
-
-        <nav class="header-actions">
-            <a href="#" class="icon-btn">
-                <i data-lucide="heart"></i>
-            </a>
-
-            <a href="#" class="icon-btn cart-btn">
-                <i data-lucide="shopping-cart"></i>
-                <span class="badge">0</span>
-            </a>
-
-            {% if user.is_authenticated %}
-                <a href="{% url 'accounts:logout' %}" class="auth-btn">Logout</a>
-            {% else %}
-                <a href="{% url 'accounts:login' %}" class="auth-btn">Login / Register</a>
-            {% endif %}
-        </nav>
-    </div>
-</header>
-
-<!-- PAGE CONTENT -->
-<main>
-    {% block content %}{% endblock %}
-</main>
-
-<!-- FOOTER -->
-<footer class="footer">
-    <div class="container footer-grid">
-        <div class="footer-section">
+    <!-- ================= HEADER ================= -->
+    <header id="main-header">
+        <div class="header-container">
             <a href="{% url 'store:home' %}" class="logo">SNEAKO</a>
-            <p>Your ultimate destination for premium sneakers.</p>
+
+            <div class="search-container">
+                <form action="{% url 'store:shop' %}" method="GET" class="search-bar">
+                    <i data-lucide="search"></i>
+                    <input type="text" name="q" placeholder="Search sneakers..." value="{{ request.GET.q }}">
+                </form>
+            </div>
+
+            <nav class="header-actions">
+                {% if user.is_authenticated %}
+                <a href="{% url 'wishlist' %}" class="header-action-icon" title="Wishlist">
+                    <i data-lucide="heart" style="width: 22px; height: 22px;"></i>
+                </a>
+
+                <a href="{% url 'cart:cart' %}" class="header-action-icon" title="Cart">
+                    <i data-lucide="shopping-cart" style="width: 22px; height: 22px;"></i>
+                    <span class="cart-badge">{% if user.cart %}{{ user.cart.items.count }}{% else %}0{% endif %}</span>
+                </a>
+
+                <a href="{% url 'accounts:profile' %}" class="account-btn">Account</a>
+                <a href="{% url 'accounts:logout' %}" class="ms-2" title="Logout">
+                    <i data-lucide="log-out" style="width: 20px; height: 20px; color: var(--sneako-black);"></i>
+                </a>
+                {% else %}
+                <a href="{% url 'accounts:login' %}" class="account-btn">Login / Register</a>
+                {% endif %}
+            </nav>
         </div>
-    </div>
-</footer>
+    </header>
 
-<!-- JS -->
-<script src="{% static 'js/script.js' %}"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>lucide.createIcons();</script>
+    <!-- ================= PAGE CONTENT ================= -->
+    <main>
+        {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
 
+    <!-- ================= FOOTER ================= -->
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <a href="{% url 'store:home' %}" class="logo">SNEAKO</a>
+                <p>Your ultimate destination for premium sneakers.</p>
+            </div>
+
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{% url 'store:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'cart:cart' %}">Cart</a></li>
+                    <li><a href="#">My Orders</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Customer Support</h4>
+                <ul>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Shipping Policy</a></li>
+                    <li><a href="#">Returns & Exchanges</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-links">
+                    <a href="#"><i data-lucide="instagram" style="width: 20px;"></i></a>
+                    <a href="#"><i data-lucide="facebook" style="width: 20px;"></i></a>
+                    <a href="#"><i data-lucide="twitter" style="width: 20px;"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 SNEAKO. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JS -->
+    <script src="{% static 'js/script.js' %}?v=1.1"></script>
+    <script>lucide.createIcons();</script>
+
+    {% block extra_js %}{% endblock %}
 </body>
+
 </html>

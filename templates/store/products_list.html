@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SNEAKO | {{ category_name }}{% endblock %}
+
+{% block content %}
+<!-- Category Header -->
+<section class="page-header"
+    style="background: var(--light-bg); padding: 4rem 0 2rem 0; border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+        <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem;">{{ category_name }}</h1>
+        <p style="color: var(--text-muted);">Explore our exclusive {{ category_name }} collection.</p>
+    </div>
+</section>
+
+<!-- Product Listing Section -->
+<section class="section">
+    <div class="container">
+        <div class="grid grid-4">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-img-wrapper">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                    <img src="{% static 'images/no-image.png' %}" alt="No image">
+                    {% endif %}
+
+                    <!-- Add To Cart Button -->
+                    <button class="add-to-cart">
+                        Add to Cart
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <span class="brand-name">{{ product.brand }}</span>
+                    <h3>{{ product.name }}</h3>
+                    <p class="price">${{ product.price }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center w-100 py-5">
+                <p class="text-muted" style="font-size: 1.2rem;">No products found in this category.</p>
+                <a href="{% url 'store:home' %}" class="btn btn-primary" style="margin-top: 1rem;">Back to Home</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

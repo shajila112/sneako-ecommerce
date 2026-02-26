@@ -258,21 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Checkout Form Submission
-document.addEventListener('DOMContentLoaded', () => {
-    const checkoutForm = document.getElementById('checkout-form');
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            if (this.checkValidity()) {
-                alert('Thank you! Your order has been placed successfully.');
-                window.location.href = 'index.html';
-            } else {
-                this.classList.add('was-validated');
-            }
-        });
-    }
-});
+
+// Checkout profile logic remains below
 
 // Profile Edit Form Handling
 document.addEventListener('DOMContentLoaded', () => {
@@ -852,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelOrderConfirmedBtn.addEventListener('click', function () {
             // In a real app, you would send an API request here
             alert('Order #ORD-2026-105 has been cancelled successfully.');
-            
+
             // Redirect to orders page or refresh to show updated status
             if (window.location.pathname.includes('order-details.html')) {
                 window.location.href = 'orders.html';

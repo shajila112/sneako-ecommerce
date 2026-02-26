@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart | SNEAKO{% endblock %}
+
+{% block content %}
+<main class="cart-page py-5">
+    <div class="container" style="max-width: 1400px; padding: 0 40px;">
+        <!-- Breadcrumbs -->
+        <div class="breadcrumbs mb-4" style="font-size: 0.9rem; color: #a1a1aa; font-weight: 400;">
+            Home / Shop / <span style="color: #0d0d0d; font-weight: 500;">Cart</span>
+        </div>
+
+        <h1 class="mb-5 fw-900" style="font-size: 3.5rem; letter-spacing: -2px; color: #000;">YOUR CART</h1>
+
+        {% if cart.items.exists %}
+        <div class="row g-5">
+            <!-- Cart Items Section -->
+            <div class="col-lg-8">
+                <div class="cart-table-container">
+                    <!-- Table Headings -->
+                    <div class="row d-none d-md-flex pb-2 mb-4 text-muted small fw-bold text-uppercase border-bottom"
+                        style="letter-spacing: 1.5px; opacity: 0.8; font-size: 0.75rem;">
+                        <div class="col-md-6">PRODUCT</div>
+                        <div class="col-md-2 text-center">QUANTITY</div>
+                        <div class="col-md-2 text-center">PRICE</div>
+                        <div class="col-md-2 text-end">REMOVE</div>
+                    </div>
+
+                    {% for item in cart.items.all %}
+                    <div class="row align-items-center py-4 border-bottom cart-item-row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="item-visual-box me-4"
+                                    style="width: 130px; height: 130px; background: #fff; border-radius: 12px; border: 1.5px solid #f1f1f1; display: flex; align-items: center; justify-content: center; padding: 10px; overflow: hidden;">
+                                    {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}"
+                                        class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                                    {% elif item.product.image_url %}
+                                    <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}"
+                                        class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                                    {% endif %}
+                                </div>
+                                <div class="item-meta">
+                                    <p class="mb-1 text-muted small text-uppercase fw-700">{{ item.product.brand }}</p>
+                                    <h5 class="mb-1 fw-800">{{ item.product.brand }} {{ item.product.name }}</h5>
+                                    <p class="text-muted small mb-0 fw-600">Size: US {{ item.size.value }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="quantity-box mx-auto"
+                                style="max-width: 110px; border: 1.5px solid #f1f1f1; border-radius: 10px; padding: 4px; display: flex; align-items: center;">
+                                <form action="{% url 'cart:update_cart' item.id %}" method="post"
+                                    class="d-flex align-items-center w-100">
+                                    {% csrf_token %}
+                                    <button type="button" class="qty-control-btn"
+                                        onclick="updateQty(this, -1)">-</button>
+                                    <input type="number" name="quantity" value="{{ item.quantity }}"
+                                        class="text-center qty-display-val" min="1" readonly
+                                        style="border: none; background: transparent; width: 40px; font-weight: 800; font-size: 1rem; outline: none;">
+                                    <button type="button" class="qty-control-btn"
+                                        onclick="updateQty(this, 1)">+</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <span class="fw-800" style="font-size: 1.25rem;">₹{{ item.get_total_item_price }}</span>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <a href="{% url 'cart:remove_from_cart' item.id %}" class="text-secondary remove-link"
+                                style="transition: 0.2s; opacity: 0.6;">
+                                <i data-lucide="trash-2" style="width: 20px;"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-5">
+                    <a href="{% url 'store:shop' %}"
+                        class="text-dark d-flex align-items-center text-decoration-none fw-700 continue-shopping-link"
+                        style="font-size: 1rem;">
+                        <i data-lucide="arrow-left" class="me-2" style="width: 20px;"></i>
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+
+            <!-- Order Summary Section (Redesigned based on Image 2) -->
+            <div class="col-lg-4">
+                <div class="sneako-card summary-card p-4"
+                    style="position: sticky; top: 120px; border-radius: 24px; border: 1.5px solid #f1f1f1;">
+                    <h2 class="fw-800 mb-4" style="font-size: 2rem; color: #000; letter-spacing: -0.5px;">Order Summary
+                    </h2>
+
+                    <div class="d-flex justify-content-between mb-4 pb-2 border-bottom">
+                        <span class="text-muted fw-600">Subtotal</span>
+                        <span class="fw-800" style="font-size: 1.15rem;">₹{{ cart_total }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-4 pb-2 border-bottom">
+                        <span class="text-muted fw-600">Shipping</span>
+                        <span class="text-muted fw-600">Calculated at checkout</span>
+                    </div>
+
+                    {% if discount > 0 %}
+                    <div class="d-flex justify-content-between mb-4 pb-2 border-bottom">
+                        <span class="text-dark fw-600">Coupon Discount</span>
+                        <span class="text-dark fw-800">-₹{{ discount }}</span>
+                    </div>
+                    {% endif %}
+
+
+
+                    <div class="total-row d-flex justify-content-between align-items-center mb-5">
+                        <span class="h4 fw-800 mb-0">Total</span>
+                        <span class="h3 fw-900 mb-0 text-dark">₹{{ final_total }}</span>
+                    </div>
+
+                    <a href="{% url 'cart:checkout' %}"
+                        class="btn btn-dark w-100 py-3 rounded-pill fw-900 checkout-btn-main shadow-lg"
+                        style="height: 64px; font-size: 1.25rem; background: #000; border: none;">
+                        Proceed to Checkout
+                    </a>
+
+                    <div class="payment-trust-icons d-flex justify-content-center gap-4 mt-5 opacity-50 grayscale">
+                        <i data-lucide="shield-check" style="width: 24px;"></i>
+                        <span class="fw-bold small">SECURE CHECKOUT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="sneako-card text-center py-5 px-4"
+            style="max-width: 600px; margin: 40px auto 0; border-radius: 24px;">
+            <div
+                style="background: #f8f9fa; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px;">
+                <i data-lucide="shopping-bag" style="width: 45px; height: 45px; color: #a1a1aa;"></i>
+            </div>
+            <h2 class="fw-800 mb-3" style="font-size: 2rem;">Your cart is empty</h2>
+            <p class="text-muted mb-4 fw-500">Looks like you haven't added any premium sneakers to your cart yet.</p>
+            <a href="{% url 'store:shop' %}" class="btn btn-dark px-5 py-3 rounded-pill fw-800"
+                style="background: #000; font-size: 1.1rem;">
+                Start Shopping
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</main>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .fw-900 {
+        font-weight: 900;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .fw-600 {
+        font-weight: 600;
+    }
+
+    .qty-control-btn {
+        background: none;
+        border: none;
+        font-weight: 800;
+        font-size: 1.2rem;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        border-radius: 6px;
+    }
+
+    .qty-control-btn:hover {
+        background: #f4f4f5;
+    }
+
+    .cart-item-row:hover .remove-link {
+        opacity: 1;
+        color: #000 !important;
+    }
+
+    .continue-shopping-link:hover {
+        opacity: 0.7;
+    }
+
+    .premium-promo-input {
+        border-radius: 10px;
+        border: 1.5px solid #f1f1f1;
+        padding: 0.75rem 1rem;
+        background: #fcfcfc;
+        font-weight: 600;
+    }
+
+    .premium-promo-input:focus {
+        background: #fff;
+        border-color: #000;
+        box-shadow: none;
+    }
+
+    .checkout-btn-main {
+        background: #000;
+        border: none;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .checkout-btn-main:hover {
+        background: #1c1c1e;
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .grayscale {
+        filter: grayscale(1);
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+</style>
+
+<script>
+    lucide.createIcons();
+
+    function updateQty(btn, delta) {
+        const form = btn.closest('form');
+        const input = form.querySelector('input[name="quantity"]');
+        let val = parseInt(input.value) + delta;
+        if (val < 1) val = 1;
+        input.value = val;
+        form.submit();
+    }
+</script>
+{% endblock %}

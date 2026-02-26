@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} | SNEAKO{% endblock %}
+
+{% block content %}
+<main class="py-5">
+    <div class="container" style="max-width: 600px;">
+        <div class="mb-5">
+            <h1 class="fw-900 mb-0">{{ title|upper }}</h1>
+            <p class="text-muted">Enter your delivery details below.</p>
+        </div>
+
+        <div class="sneako-card p-4 shadow-sm">
+            <form method="POST" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="mb-4">
+                    <label class="form-label small fw-600 text-muted">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ field.errors|striptags }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div class="d-grid gap-3 mt-5">
+                    <button type="submit" class="btn btn-dark py-3 rounded-pill fw-800">Save Address</button>
+                    <a href="{% url 'accounts:address_list' %}"
+                        class="btn btn-outline-dark py-3 rounded-pill fw-800">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<style>
+    .fw-600 {
+        font-weight: 600;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-900 {
+        font-weight: 900;
+        letter-spacing: -1px;
+    }
+
+    .sneako-card {
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid #f1f1f1;
+    }
+
+    .premium-input {
+        background: #f8f9fa;
+        border: 1px solid #ececec;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .premium-input:focus {
+        background: #fff;
+        border-color: #111;
+        box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+    }
+</style>
+
+<script>
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'auth_base.html' %}
 {% load static %}
 
 {% block content %}
@@ -13,10 +13,10 @@
             </p>
         </div>
 
-        <!-- 🔥 FORM FIXED -->
-        <form method="POST" action="{% url 'accounts:otp' %}">
+        <form method="POST" action="{% url 'accounts:otp_verify' %}">
             {% csrf_token %}
 
+            <!-- OTP INPUTS -->
             <div class="d-flex justify-content-center gap-2 mb-4">
                 <input type="text" name="otp1" class="otp-input form-control"
                        maxlength="1" pattern="[0-9]" required>
@@ -28,42 +28,44 @@
                        maxlength="1" pattern="[0-9]" required>
             </div>
 
-            <div class="text-center mb-4">
-                <p class="small text-muted mb-0">
-                    Didn't receive code?
-                    <a href="{% url 'accounts:register' %}"
-                       class="text-dark fw-bold text-decoration-none">
+            <!-- PRIMARY CTA -->
+            <button type="submit" class="auth-btn w-100 mt-2">
+                Verify &amp; Proceed
+            </button>
+
+            <!-- SECONDARY ACTIONS -->
+            <div class="text-center mt-4">
+                <p class="small text-muted mb-2">
+                    Didn’t receive code?
+                    <a href="{% url 'accounts:resend_otp' %}"
+                       class="fw-bold text-decoration-none">
                         Resend
                     </a>
                 </p>
-            </div>
 
-            <button type="submit" class="auth-btn">
-                Verify & Proceed
-            </button>
+                <a href="{% url 'accounts:login' %}"
+                   class="small text-decoration-none">
+                    Back to Login
+                </a>
+            </div>
         </form>
 
-        <div class="auth-link">
-            <a href="{% url 'accounts:login' %}">
-                Back to Login
-            </a>
-        </div>
     </div>
 </main>
 
-<!-- ✅ KEEP ONLY AUTO-FOCUS JS -->
+<!-- AUTO-FOCUS JS -->
 <script>
     const inputs = document.querySelectorAll('.otp-input');
 
     inputs.forEach((input, index) => {
-        input.addEventListener('input', (e) => {
-            if (e.target.value.length === 1 && index < inputs.length - 1) {
+        input.addEventListener('input', () => {
+            if (input.value.length === 1 && index < inputs.length - 1) {
                 inputs[index + 1].focus();
             }
         });
 
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            if (e.key === 'Backspace' && !input.value && index > 0) {
                 inputs[index - 1].focus();
             }
         });

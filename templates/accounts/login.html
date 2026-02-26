@@ -1,72 +1,98 @@
-{% extends 'base.html' %}
+{% extends "auth_base.html" %}
+
 {% load static %}
+
+
+
+
+
+
 
 {% block content %}
 <main class="auth-body">
     <div class="auth-card">
+
         <div class="auth-logo">SNEAKO</div>
 
         <div class="auth-header">
             <h2>Login to Your Account</h2>
         </div>
 
-        <!-- 🔥 FORM FIXED -->
         <form method="POST" action="{% url 'accounts:login' %}">
             {% csrf_token %}
 
+            <!-- EMAIL -->
             <div class="mb-3">
                 <label class="form-label">Email address</label>
-                <input type="email" class="form-control"
-                       name="email" placeholder="Enter your email" required>
+                <input type="email"
+                       name="email"
+                       class="form-control"
+                       placeholder="Enter your email"
+                       required>
+            </div>
+
+            <!-- PASSWORD + FORGOT -->
+            <div class="mb-2 d-flex justify-content-between align-items-center">
+                <label class="form-label mb-0">Password</label>
+                <a href="{% url 'accounts:forgot_password' %}"
+                   class="small text-decoration-none fw-bold">
+                    Forgot password?
+                </a>
             </div>
 
             <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="form-label mb-0">Password</label>
-                    <a href="#" class="text-decoration-none small fw-bold"
-                       style="color: var(--primary-color);">
-                        Forgot Password?
-                    </a>
-                </div>
-
-                <input type="password" class="form-control mt-2"
-                       name="password" placeholder="Enter your password" required>
+                <input type="password"
+                       name="password"
+                       class="form-control"
+                       placeholder="Enter your password"
+                       required>
             </div>
 
-            <div class="remember-me">
-                <input type="checkbox" id="remember">
-                <label for="remember">Remember me</label>
+            <!-- REMEMBER -->
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="remember">
+                <label class="form-check-label small" for="remember">
+                    Remember me
+                </label>
             </div>
 
-            <button type="submit" class="auth-btn mt-3">Login</button>
+            <!-- PRIMARY CTA -->
+            <button type="submit" class="auth-btn w-100">
+                Login
+            </button>
 
-            <div class="d-flex align-items-center my-3">
+            <!-- DIVIDER -->
+            <div class="d-flex align-items-center my-4">
                 <hr class="flex-grow-1">
                 <span class="mx-2 text-muted small">OR</span>
                 <hr class="flex-grow-1">
             </div>
 
-            <!-- Google login stays (backend later) -->
-            <div id="g_id_onload"
-                 data-client_id="YOUR_GOOGLE_CLIENT_ID"
-                 data-auto_prompt="false">
-            </div>
 
-            <div class="g_id_signin"
-                 data-type="standard"
-                 data-size="large"
-                 data-theme="outline"
-                 data-text="sign_in_with"
-                 data-shape="rectangular"
-                 data-logo_alignment="left"
-                 data-width="100%">
-            </div>
+        
+
+
+     
+{% load socialaccount %}
+
+<a href="{% provider_login_url 'google' process='login' %}" class="google-btn">
+    Continue with Google
+</a>
+
+          
         </form>
 
-        <div class="auth-link">
-            Don’t have an account?
-            <a href="{% url 'accounts:register' %}">Register</a>
+        <!-- REGISTER LINK -->
+        <div class="text-center mt-4">
+            <p class="small mb-0">
+                Don’t have an account?
+                <a href="{% url 'accounts:register' %}"
+                   class="fw-bold text-decoration-none">
+                    Register
+                </a>
+            </p>
         </div>
+
     </div>
 </main>
 {% endblock %}

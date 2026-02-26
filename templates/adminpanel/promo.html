@@ -1,0 +1,158 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Manage Promo Codes | SNEAKO Admin{% endblock %}
+{% block active_promo %}active{% endblock %}
+{% block page_title %}Promo Code Management{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Active Promo Codes</h4>
+        <div class="admin-header-actions">
+            <button class="btn btn-dark btn-sm rounded-pill px-3" data-bs-toggle="modal"
+                data-bs-target="#createPromoModal">
+                <i data-lucide="plus" size="16" class="me-1"></i> Create Promo Code
+            </button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table-admin">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Discount (%)</th>
+                    <th>Min. Amount</th>
+                    <th>Validity Period</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for coupon in coupons %}
+                <tr>
+                    <td class="fw-bold">{{ coupon.code }}</td>
+                    <td>{{ coupon.discount_percentage }}%</td>
+                    <td>₹{{ coupon.minimum_amount }}</td>
+                    <td>
+                        <small>
+                            From: {{ coupon.valid_from|date:"M d, Y H:i" }}<br>
+                            To: {{ coupon.valid_to|date:"M d, Y H:i" }}
+                        </small>
+                    </td>
+                    <td>
+                        {% if coupon.active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-light border text-danger delete-promo-btn" title="Delete"
+                                data-bs-toggle="modal" data-bs-target="#deletePromoModal"
+                                data-code="{{ coupon.code }}"><i data-lucide="trash-2" size="14"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">No promo codes found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Promo Modal -->
+<div class="modal fade" id="createPromoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Create Promo Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{% url 'adminpanel:create_coupon' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Promo Code Name</label>
+                        <input type="text" name="code" class="form-control rounded-pill px-3"
+                            placeholder="e.g. SUMMER20" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label small fw-bold text-muted">Discount (%)</label>
+                            <input type="number" name="discount_percentage" class="form-control rounded-pill px-3"
+                                placeholder="e.g. 20" required min="1" max="100">
+                        </div>
+                        <div class="col">
+                            <label class="form-label small fw-bold text-muted">Min. Amount (₹)</label>
+                            <input type="number" name="minimum_amount" class="form-control rounded-pill px-3"
+                                placeholder="0.00" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label small fw-bold text-muted">Valid From</label>
+                            <input type="datetime-local" name="valid_from" class="form-control rounded-pill px-3"
+                                required>
+                        </div>
+                        <div class="col">
+                            <label class="form-label small fw-bold text-muted">Valid To</label>
+                            <input type="datetime-local" name="valid_to" class="form-control rounded-pill px-3"
+                                required>
+                        </div>
+                    </div>
+                    <div class="mb-4 d-flex align-items-center gap-2">
+                        <input type="checkbox" name="active" id="active_toggle" class="form-check-input" checked>
+                        <label for="active_toggle" class="small fw-bold text-muted mb-0">Active</label>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold">Create Code</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deletePromoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center"
+                        style="width: 80px; height: 80px;">
+                        <i data-lucide="alert-triangle" size="40" class="text-danger"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold">Delete Promo Code?</h4>
+                <p class="text-muted">Are you sure you want to delete <span id="delete-promo-code"
+                        class="fw-bold text-dark"></span>? This action cannot be undone.</p>
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger rounded-pill px-4" id="confirm-delete-btn">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle Delete Promo Modal
+    document.querySelectorAll('.delete-promo-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const code = btn.getAttribute('data-code');
+            document.getElementById('delete-promo-code').innerText = code;
+
+            // Update the delete link href
+            const deleteUrl = "{% url 'adminpanel:delete_coupon' 'CODE_PLACEHOLDER' %}".replace('CODE_PLACEHOLDER', code);
+            document.getElementById('confirm-delete-btn').setAttribute('href', deleteUrl);
+        });
+    });
+</script>
+{% endblock %}

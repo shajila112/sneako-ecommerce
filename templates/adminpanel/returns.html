@@ -1,0 +1,202 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Manage Returns | SNEAKO Admin{% endblock %}
+{% block active_returns %}active{% endblock %}
+{% block page_title %}Return Management{% endblock %}
+
+{% block content %}
+<!-- Return Requests Stats -->
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i data-lucide="clock"></i>
+        </div>
+        <div class="stat-info">
+            <span>Pending Requests</span>
+            <h3>{{ pending_returns_count|default:8 }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i data-lucide="check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <span>Approved</span>
+            <h3>{{ approved_returns_count|default:42 }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i data-lucide="dollar-sign"></i>
+        </div>
+        <div class="stat-info">
+            <span>Refunded</span>
+            <h3>{{ refunded_returns_count|default:35 }}</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Return Requests Table -->
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Return Requests</h4>
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm rounded-pill px-3">
+                <option selected>All Status</option>
+                <option>Pending</option>
+                <option>Approved</option>
+                <option>Rejected</option>
+                <option>Refunded</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table-admin">
+            <thead>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Order ID</th>
+                    <th>Product</th>
+                    <th>Customer</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for return_req in return_requests %}
+                <tr id="return-row-{{ return_req.id }}">
+                    <td>#{{ return_req.return_id }}</td>
+                    <td class="fw-bold">#{{ return_req.order.order_id }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-light rounded-3"
+                                style="width: 40px; height: 40px; overflow: hidden; flex-shrink: 0;">
+                                {% if return_req.order_item.product.image %}
+                                <img src="{{ return_req.order_item.product.image.url }}" alt="Sneaker"
+                                    class="w-100 h-100 object-fit-contain">
+                                {% else %}
+                                <div
+                                    class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary-subtle">
+                                    <i data-lucide="image" size="16"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="fw-medium small line-clamp-1">{{ return_req.order_item.product.name }}</div>
+                        </div>
+                    </td>
+                    <td>{{ return_req.user.get_full_name|default:return_req.user.username }}</td>
+                    <td class="small">{{ return_req.reason }}</td>
+                    <td>{{ return_req.created_at|date:"M d, Y" }}</td>
+                    <td class="status-cell">
+                        <span class="status-badge {{ return_req.status|lower }}">
+                            {{ return_req.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-light border px-3 rounded-pill hov-dark view-return-btn"
+                            data-bs-toggle="modal" data-bs-target="#viewReturnModal"
+                            data-req-id="#{{ return_req.return_id }}" data-order-id="#{{ return_req.order.order_id }}"
+                            data-customer="{{ return_req.user.get_full_name|default:return_req.user.username }}"
+                            data-product-name="{{ return_req.order_item.product.name }}"
+                            data-product-image="{% if return_req.order_item.product.image %}{{ return_req.order_item.product.image.url }}{% endif %}"
+                            data-reason="{{ return_req.reason }}" data-comment="{{ return_req.comment }}"
+                            data-date="{{ return_req.created_at|date:'M d, Y' }}" data-status="{{ return_req.status }}">
+                            Manage
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">No return requests found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- View Return Request Modal -->
+<div class="modal fade" id="viewReturnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <!-- Modal Body Content (Dynamic via JS) -->
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold">Return Request <span class="text-muted small ms-2"
+                        id="modal-req-id">#RET-XXXX</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
+                    <div class="bg-white rounded-3 shadow-sm"
+                        style="width: 60px; height: 60px; overflow: hidden; flex-shrink: 0;">
+                        <img id="modal-product-image" src="" alt="Product" class="w-100 h-100 object-fit-contain">
+                    </div>
+                    <div>
+                        <p class="text-muted extra-small mb-0">Returning Product</p>
+                        <h6 class="fw-bold mb-0" id="modal-product-name">Product Name</h6>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <p class="text-muted small mb-1">Order ID</p>
+                            <p class="fw-bold mb-0" id="modal-order-id">#ORD-XXXX</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small mb-1">Customer</p>
+                            <p class="fw-bold mb-0" id="modal-customer">John Doe</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small mb-1">Reason</p>
+                            <p class="fw-bold mb-0 text-danger" id="modal-reason">Defective</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small mb-1">Request Date</p>
+                            <p class="fw-bold mb-0" id="modal-date">Feb 01, 2026</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <p class="text-muted small mb-2">Customer Comments</p>
+                    <div class="p-3 bg-light rounded-4 italic">
+                        <p class="mb-0 small" id="modal-comment">"The product was damaged during shipping."</p>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <div class="input-group">
+                        <select id="update-return-status" class="form-select rounded-pill-start">
+                            <option value="Pending">Pending Approval</option>
+                            <option value="Approved">Approve Return</option>
+                            <option value="Rejected">Reject Return</option>
+                            <option value="Refunded">Process Refund</option>
+                        </select>
+                        <button class="btn btn-primary rounded-pill-end px-4" id="save-return-btn">Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle View Return Modal
+    document.querySelectorAll('.view-return-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('modal-req-id').innerText = btn.getAttribute('data-req-id');
+            document.getElementById('modal-order-id').innerText = btn.getAttribute('data-order-id');
+            document.getElementById('modal-customer').innerText = btn.getAttribute('data-customer');
+            document.getElementById('modal-product-name').innerText = btn.getAttribute('data-product-name');
+            document.getElementById('modal-product-image').src = btn.getAttribute('data-product-image');
+            document.getElementById('modal-reason').innerText = btn.getAttribute('data-reason');
+            document.getElementById('modal-comment').innerText = `"${btn.getAttribute('data-comment')}"`;
+            document.getElementById('modal-date').innerText = btn.getAttribute('data-date');
+            document.getElementById('update-return-status').value = btn.getAttribute('data-status');
+        });
+    });
+</script>
+{% endblock %}

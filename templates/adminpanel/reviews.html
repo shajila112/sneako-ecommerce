@@ -1,0 +1,123 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Manage Reviews | SNEAKO Admin{% endblock %}
+{% block active_reviews %}active{% endblock %}
+{% block page_title %}Review Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .review-status-badge {
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-visible {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-hidden {
+        background: #fff3e0;
+        color: #ef6c00;
+    }
+
+    .review-comment-cell {
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="card-header">
+        <h4>Customer Reviews</h4>
+        <div class="d-flex gap-2">
+            <input type="text" id="admin-review-search" class="form-control form-control-sm"
+                placeholder="Search reviews..." style="width: 250px;">
+            <select id="status-filter" class="form-select form-select-sm" style="width: 150px;">
+                <option value="all">All Status</option>
+                <option value="visible">Visible</option>
+                <option value="hidden">Hidden</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table-admin">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>User</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="admin-review-table-body">
+                {% for review in reviews %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if review.product.image %}
+                            <img src="{{ review.product.image.url }}" width="32" height="32" class="rounded border">
+                            {% endif %}
+                            <span class="fw-bold small">{{ review.product.name }}</span>
+                        </div>
+                    </td>
+                    <td><span class="small">{{ review.user.get_full_name|default:review.user.username }}</span></td>
+                    <td><span class="text-warning small fw-bold">{{ review.rating }} ★</span></td>
+                    <td>
+                        <div class="review-comment-cell small" title="{{ review.comment }}">{{ review.comment }}</div>
+                    </td>
+                    <td><span class="text-muted extra-small">{{ review.created_at|date:"M d, Y" }}</span></td>
+                    <td>
+                        <span
+                            class="review-status-badge {% if review.is_visible %}status-visible{% else %}status-hidden{% endif %}">
+                            {% if review.is_visible %}Visible{% else %}Hidden{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-light border toggle-visibility-btn" data-id="{{ review.id }}">
+                                <i data-lucide="{% if review.is_visible %}eye-off{% else %}eye{% endif %}"
+                                    size="14"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light border text-danger delete-review-btn"
+                                data-id="{{ review.id }}">
+                                <i data-lucide="trash-2" size="14"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4">No reviews found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Manual Review Modal placeholder -->
+<div class="modal fade" id="addReviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <!-- Modal content same as before ... -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Logic for search/filter and visibility toggling would go here
+</script>
+{% endblock %}

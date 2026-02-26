@@ -13,8 +13,10 @@
                 Elevate your footwear game with our exclusive collections.
             </p>
             <div class="hero-btns">
-                <a href="#" class="btn btn-primary">Shop Collection</a>
-                <a href="#" class="btn btn-outline">New Arrivals</a>
+                <a href="#shop-collection" class="btn btn-primary">Shop Collection</a>
+
+                <a href="#new-arrivals" class="btn btn-outline">New Arrivals</a>
+
             </div>
         </div>
 
@@ -24,15 +26,71 @@
     </div>
 </section>
 
+
+<!-- New Arrivals Section -->
+<section id="new-arrivals" class="section">
+    <div class="container">
+        <h2 class="section-title">New Arrivals</h2>
+
+        <div class="grid grid-3">
+            {% for product in products %}
+            <div class="product-card">
+                <a href="{% url 'store:product_detail' product.pk %}" style="text-decoration: none; color: inherit;">
+                    <div class="product-img-wrapper">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% elif product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                        {% else %}
+                        <img src="{% static 'images/no-image.png' %}" alt="No image">
+                        {% endif %}
+                        <button class="add-to-cart">Add to Cart</button>
+                    </div>
+                </a>
+
+                <div class="product-info">
+                    <span class="brand-name">{{ product.brand }}</span>
+                    <a href="{% url 'store:product_detail' product.pk %}"
+                        style="text-decoration: none; color: inherit;">
+                        <h3>{{ product.name }}</h3>
+                    </a>
+                    <div class="d-flex align-items-center gap-2">
+                        <p class="price m-0">₹{{ product.price }}</p>
+                        {% if product.original_price %}
+                        <p class="text-muted small m-0" style="text-decoration: line-through;">₹{{
+                            product.original_price }}</p>
+                        {% endif %}
+                    </div>
+                    {% if best_discount_percentage > 0 %}
+                    <div class="best-price-preview small fw-bold text-success" style="font-size: 0.75rem;">
+                        <i data-lucide="tag" style="width: 12px; height: 12px; vertical-align: middle;"></i>
+                        As low as ₹{{ product.price|floatformat:2 }} (with coupon)
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+            {% empty %}
+            <p class="text-center w-100 py-5 text-muted">
+                No products available yet.
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
 <!-- Categories Section -->
-<section class="categories section">
+
+<section id="shop-collection" class="categories section">
+
     <div class="container">
         <div class="grid grid-3">
             <div class="category-card">
                 <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800">
                 <div class="category-overlay">
                     <h3>Men's Shoes</h3>
-                    <a href="#" class="category-link">Shop Now</a>
+                    <a href="{% url 'store:shop' %}?gender=Men" class="category-link">Shop Now</a>
                 </div>
             </div>
 
@@ -40,7 +98,7 @@
                 <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=800">
                 <div class="category-overlay">
                     <h3>Women's Shoes</h3>
-                    <a href="#" class="category-link">Shop Now</a>
+                    <a href="{% url 'store:shop' %}?gender=Women" class="category-link">Shop Now</a>
                 </div>
             </div>
 
@@ -48,11 +106,31 @@
                 <img src="https://images.unsplash.com/photo-1514989940723-e8e51635b782?auto=format&fit=crop&q=80&w=800">
                 <div class="category-overlay">
                     <h3>Kids' Shoes</h3>
-                    <a href="#" class="category-link">Shop Now</a>
+                    <a href="{% url 'store:shop' %}?gender=Kids" class="category-link">Shop Now</a>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyCoupon(code) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Coupon code ' + code + ' copied to clipboard!');
+            }).catch(err => {
+                const textArea = document.createElement("textarea");
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Coupon code ' + code + ' copied to clipboard!');
+            });
+        }
+    }
+</script>
 {% endblock %}

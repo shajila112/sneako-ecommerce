@@ -1,0 +1,470 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard | SNEAKO{% endblock %}
+{% block active_dashboard %}active{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        height: 250px;
+        display: flex;
+        align-items: flex-end;
+        gap: 15px;
+        padding: 20px 10px;
+        background: #f8fafc;
+        border-radius: 12px;
+        position: relative;
+    }
+
+    .chart-bar-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chart-bar {
+        width: 100%;
+        max-width: 40px;
+        background: var(--primary-color);
+        border-radius: 6px 6px 0 0;
+        height: var(--bar-height, 0);
+        transition: height 0.6s ease;
+        position: relative;
+    }
+
+    .chart-bar:hover {
+        opacity: 0.8;
+    }
+
+    .chart-bar::after {
+        content: attr(data-value);
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .chart-bar:hover::after {
+        opacity: 1;
+    }
+
+    .chart-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .top-products-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .top-product-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .top-product-item:last-child {
+        border-bottom: none;
+    }
+
+    .growth-badge {
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .growth-up {
+        background: #dcfce7;
+        color: #166534;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i data-lucide="package"></i>
+        </div>
+        <div class="stat-info">
+            <span>Total Products</span>
+            <h3>{{ total_products }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i data-lucide="shopping-cart"></i>
+        </div>
+        <div class="stat-info">
+            <span>Total Orders</span>
+            <h3>{{ total_orders }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i data-lucide="dollar-sign"></i>
+        </div>
+        <div class="stat-info">
+            <span>Total Revenue</span>
+            <h3>₹{{ total_revenue }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red">
+            <i data-lucide="alert-triangle"></i>
+        </div>
+        <div class="stat-info">
+            <span>Low Stock</span>
+            <h3>{{ low_stock }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i data-lucide="users"></i>
+        </div>
+        <div class="stat-info">
+            <span>Active Users</span>
+            <h3>{{ active_users|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i data-lucide="log-in"></i>
+        </div>
+        <div class="stat-info">
+            <span>Today's Logins</span>
+            <h3>{{ todays_logins|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon cyan">
+            <i data-lucide="trending-up"></i>
+        </div>
+        <div class="stat-info">
+            <span>Avg Order Value</span>
+            <h3>₹{{ avg_order_value|default:145.50 }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Sales Performance -->
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="card-header">
+                <h4>Sales Performance</h4>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Last 7 Days
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Last 30 Days</a></li>
+                        <li><a class="dropdown-item" href="#">Last Year</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="chart-container">
+                {% for item in sales_data %}
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="--bar-height: {{ item.height }};" data-value="₹{{ item.amount }}">
+                    </div>
+                    <span class="chart-label">{{ item.day }}</span>
+                </div>
+                {% empty %}
+                <div class="w-100 text-center text-muted">No sales data available.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="card-header">
+                <h4>Top Selling Products</h4>
+            </div>
+            <div class="top-products-list">
+                {% for product in top_products %}
+                <div class="top-product-item">
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ product.name }}</h6>
+                        <small class="text-muted">{{ product.sales }} sales</small>
+                    </div>
+                    <span class="growth-badge growth-up">{{ product.growth }}</span>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4">No data available.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Orders -->
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="card-header">
+                <h4>Recent Orders</h4>
+                <a href="{% url 'adminpanel:orders' %}" class="btn btn-sm btn-outline-dark">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table-admin">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>#{{ order.order_id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded-3"
+                                        style="width: 40px; height: 40px; overflow: hidden; flex-shrink: 0;">
+                                        {% if order.first_item_image %}
+                                        <img src="{{ order.first_item_image.url }}" alt="Product"
+                                            class="w-100 h-100 object-fit-contain">
+                                        {% else %}
+                                        <div
+                                            class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary-subtle">
+                                            <i data-lucide="image" size="16"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="fw-medium small line-clamp-1">{{ order.first_item_name }}</div>
+                                </div>
+                            </td>
+                            <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                            <td>
+                                <span class="status-badge {{ order.status|lower }}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                            <td>₹{{ order.total_amount }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-light border view-order-btn" data-bs-toggle="modal"
+                                    data-bs-target="#viewOrderModal" data-order-id="#{{ order.order_id }}"
+                                    data-customer="{{ order.address.full_name }}" data-email="{{ order.user.email }}"
+                                    data-phone="{{ order.address.phone }}"
+                                    data-address="{{ order.address.street_address }}, {{ order.address.city }}"
+                                    data-payment="{{ order.payment_method }}" data-items='{{ order.get_items_json }}'
+                                    data-subtotal="{{ order.subtotal }}" data-shipping="{{ order.shipping_cost }}"
+                                    data-tax="{{ order.tax }}" data-total="{{ order.total_amount }}"
+                                    data-status-payment="{{ order.payment_status }}"
+                                    data-status-order="{{ order.status }}">
+                                    View
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No recent orders found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="card-header">
+                <h4>Recent Notifications</h4>
+            </div>
+            <div class="text-center text-muted py-4">
+                <i data-lucide="bell-off" class="mb-2"></i>
+                <p class="small mb-0">No new notifications</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Order Modal -->
+<div class="modal fade" id="viewOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold">Order Details <span class="text-muted small ms-2"
+                        id="modal-order-id">#ORD-XXXX</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4 mb-4">
+                    <!-- Customer Info -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="user" size="18"
+                                class="me-2"></i> Customer Info</h6>
+                        <div class="p-3 bg-light rounded-4">
+                            <p class="mb-1 fw-bold" id="modal-customer-name">John Doe</p>
+                            <p class="mb-1 text-muted small" id="modal-customer-email">john@example.com</p>
+                            <p class="mb-0 text-muted small" id="modal-customer-phone">+1 234 567 890</p>
+                        </div>
+                    </div>
+                    <!-- Shipping Address -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="map-pin" size="18"
+                                class="me-2"></i> Shipping Address</h6>
+                        <div class="p-3 bg-light rounded-4">
+                            <p class="mb-0 text-muted small" id="modal-shipping-address">123 Shoe Street, Sneakers
+                                City, NY 10001, USA</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status & Payment -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="info" size="18"
+                                class="me-2"></i> Order Status</h6>
+                        <div class="d-flex gap-2" id="modal-status-badges">
+                            <!-- Badges will be inserted here -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="credit-card" size="18"
+                                class="me-2"></i> Payment Method</h6>
+                        <p class="mb-0 text-muted small" id="modal-payment-method">Stripe (Credit Card)</p>
+                    </div>
+                </div>
+
+                <!-- Order Items Table -->
+                <h6 class="fw-bold mb-3 d-flex align-items-center"><i data-lucide="package" size="18" class="me-2"></i>
+                    Order Items</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-borderless align-middle">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr class="small text-muted text-uppercase fw-bold">
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-order-items">
+                            <!-- Items will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary -->
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Subtotal</span>
+                            <span class="fw-bold" id="modal-subtotal">₹0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Shipping</span>
+                            <span class="fw-bold" id="modal-shipping">₹0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                            <span class="text-muted small">Tax (5%)</span>
+                            <span class="fw-bold" id="modal-tax">₹0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bolder fs-5">Total</span>
+                            <span class="fw-bolder fs-5" id="modal-total">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-dark rounded-pill px-4" onclick="window.print()">
+                    <i data-lucide="printer" size="16" class="me-2"></i> Print Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Populate View Order Modal
+    document.querySelectorAll('.view-order-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const orderId = btn.getAttribute('data-order-id');
+            const customer = btn.getAttribute('data-customer');
+            const email = btn.getAttribute('data-email');
+            const phone = btn.getAttribute('data-phone');
+            const address = btn.getAttribute('data-address');
+            const payment = btn.getAttribute('data-payment');
+            const items = JSON.parse(btn.getAttribute('data-items'));
+            const subtotal = btn.getAttribute('data-subtotal');
+            const shipping = btn.getAttribute('data-shipping');
+            const tax = btn.getAttribute('data-tax');
+            const total = btn.getAttribute('data-total');
+            const statusPayment = btn.getAttribute('data-status-payment');
+            const statusOrder = btn.getAttribute('data-status-order');
+
+            document.getElementById('modal-order-id').innerText = orderId;
+            document.getElementById('modal-customer-name').innerText = customer;
+            document.getElementById('modal-customer-email').innerText = email;
+            document.getElementById('modal-customer-phone').innerText = phone;
+            document.getElementById('modal-shipping-address').innerText = address;
+            document.getElementById('modal-payment-method').innerText = payment;
+            document.getElementById('modal-subtotal').innerText = `₹${subtotal}`;
+            document.getElementById('modal-shipping').innerText = `₹${shipping}`;
+            document.getElementById('modal-tax').innerText = `₹${tax}`;
+            document.getElementById('modal-total').innerText = `₹${total}`;
+
+            // Status Badges
+            const badgeContainer = document.getElementById('modal-status-badges');
+            badgeContainer.innerHTML = `
+                    <span class="status-badge ${statusPayment.toLowerCase()}">${statusPayment}</span>
+                    <span class="status-badge ${statusOrder.toLowerCase()}">${statusOrder}</span>
+                `;
+
+            // Order Items
+            const itemsContainer = document.getElementById('modal-order-items');
+            itemsContainer.innerHTML = '';
+            items.forEach(item => {
+                const row = `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="bg-light rounded-3 p-1" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                        <i data-lucide="image" size="16" class="text-muted"></i>
+                                    </div>
+                                    <span class="small fw-bold">${item.name}</span>
+                                </div>
+                            </td>
+                            <td class="small">₹${item.price.toFixed(2)}</td>
+                            <td class="small">${item.qty}</td>
+                            <td class="small fw-bold text-end">₹${(item.price * item.qty).toFixed(2)}</td>
+                        </tr>
+                    `;
+                itemsContainer.insertAdjacentHTML('beforeend', row);
+            });
+
+            // Re-initialize Lucide icons for the newly added elements
+            lucide.createIcons();
+        });
+    });
+</script>
+{% endblock %}

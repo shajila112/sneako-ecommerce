@@ -337,7 +337,7 @@ ul {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: #ff3b30;
+    background: #000;
     color: white;
     padding: 4px 12px;
     border-radius: 50px;
@@ -503,85 +503,7 @@ ul {
     padding-bottom: 80px;
 }
 
-/* Authentication Pages */
-.auth-body {
-    background-color: var(--light-gray);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-}
 
-.auth-card {
-    background: var(--white);
-    padding: 40px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    width: 100%;
-    max-width: 450px;
-    transition: var(--transition);
-}
-
-.auth-card:hover {
-    box-shadow: var(--shadow-lg);
-}
-
-.auth-logo {
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: -1px;
-    text-align: center;
-    margin-bottom: 10px;
-    color: var(--primary-color);
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.auth-header h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-color);
-    margin-bottom: 5px;
-}
-
-.auth-btn {
-    background: var(--primary-color);
-    color: var(--white);
-    border: none;
-    padding: 14px;
-    border-radius: 50px;
-    font-weight: 700;
-    width: 100%;
-    margin-top: 10px;
-    transition: var(--transition);
-}
-
-.auth-btn:hover {
-    background: #333;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.auth-link {
-    text-align: center;
-    margin-top: 25px;
-    font-size: 0.9rem;
-    color: var(--accent-color);
-}
-
-.auth-link a {
-    color: var(--primary-color);
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.auth-link a:hover {
-    text-decoration: underline;
-}
 
 .form-label {
     font-weight: 600;
@@ -874,8 +796,8 @@ ul {
 }
 
 .wishlist-btn.active i {
-    fill: #ff3b30;
-    color: #ff3b30;
+    fill: #000;
+    color: #000;
 }
 
 .product-actions {
@@ -2434,3 +2356,81 @@ ul {
 .extra-small {
     font-size: 0.75rem;
 }
+
+/* =====================================
+   REGISTER PAGE – EXACT MODEL DESIGN
+   ===================================== */
+
+/* Card spacing */
+.auth-card {
+    padding: 48px 40px;
+}
+
+/* Title spacing */
+.auth-logo {
+    margin-bottom: 12px;
+}
+
+.auth-header h2 {
+    margin-bottom: 32px;
+}
+
+/* Each field spacing */
+.auth-card .mb-3 {
+    margin-bottom: 22px;
+}
+
+/* Label – bold, clean, black */
+.auth-card .form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 8px;
+}
+
+/* Input – exact model look */
+.auth-card .form-control {
+    height: 52px;                 /* 🔥 key */
+    padding: 0 16px;
+    border-radius: 12px;          /* 🔥 key */
+    border: 1px solid #e4e4e7;
+    font-size: 0.95rem;
+    color: #09090b;
+    background-color: #fff;
+}
+
+/* Placeholder color */
+.auth-card .form-control::placeholder {
+    color: #a1a1aa;
+    font-weight: 400;
+}
+
+/* Focus – subtle, no glow */
+.auth-card .form-control:focus {
+    border-color: #000;
+    box-shadow: none;
+    outline: none;
+}
+
+/* Register button – pill shape */
+.auth-card .auth-btn {
+    height: 54px;
+    border-radius: 999px;         /* 🔥 full pill */
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: 16px;
+}
+
+.otp-input {
+    width: 55px;
+    height: 55px;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+    border-radius: 12px;
+}
+html {
+    scroll-behavior: smooth;
+}
+
+

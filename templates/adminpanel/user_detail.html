@@ -1,0 +1,159 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}User Details | SNEAKO Admin{% endblock %}
+{% block active_users %}active{% endblock %}
+{% block page_title %}User Details{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- User Profile Card -->
+    <div class="col-lg-4">
+        <div class="admin-card text-center p-4">
+            <div class="avatar-lg bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                style="width: 80px; height: 80px;">
+                <i data-lucide="user" size="40" class="text-secondary"></i>
+            </div>
+            <h5 class="fw-bold mb-1">{{ user_obj.get_full_name|default:user_obj.username }}</h5>
+            <p class="text-muted small mb-3">{{ user_obj.email }}</p>
+
+            <div class="mb-3">
+                {% if user_obj.is_superuser %}
+                <span class="fw-bold text-danger text-uppercase small">Super Admin</span>
+                {% elif user_obj.is_staff %}
+                <span class="fw-bold text-primary text-uppercase small">Admin</span>
+                {% else %}
+                <span class="text-muted text-uppercase small">User</span>
+                {% endif %}
+            </div>
+
+            <span class="status-badge {% if user_obj.is_active %}paid{% else %}pending{% endif %} mb-3 d-inline-block">
+                {% if user_obj.is_active %}Active{% else %}Blocked{% endif %}
+            </span>
+
+            <div class="d-flex justify-content-center gap-2 mt-2">
+                {% if user_obj.is_active %}
+                <a href="{% url 'adminpanel:block_user' user_obj.id %}" class="btn btn-sm btn-outline-danger w-100"
+                    onclick="return confirm('Block this user?')">
+                    <i data-lucide="lock" size="14" class="me-1"></i> Block
+                </a>
+                {% else %}
+                <a href="{% url 'adminpanel:unblock_user' user_obj.id %}" class="btn btn-sm btn-outline-success w-100"
+                    onclick="return confirm('Unblock this user?')">
+                    <i data-lucide="unlock" size="14" class="me-1"></i> Unblock
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="mt-2">
+                <a href="{% url 'adminpanel:delete_user' user_obj.id %}" class="btn btn-sm btn-outline-secondary w-100"
+                    onclick="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')">
+                    <i data-lucide="trash-2" size="14" class="me-1"></i> Delete User
+                </a>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row text-center">
+                <div class="col-6 border-end">
+                    <h6 class="fw-bold mb-1">{{ order_count }}</h6>
+                    <small class="text-muted">Orders</small>
+                </div>
+                <div class="col-6">
+                    <h6 class="fw-bold mb-1">₹{{ total_spent }}</h6>
+                    <small class="text-muted">Spent</small>
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <div class="text-start">
+                <small class="text-muted d-block mb-1">Joined</small>
+                <p class="fw-medium small mb-3">{{ user_obj.date_joined|date:"M d, Y H:i" }}</p>
+
+                <small class="text-muted d-block mb-1">Last Login</small>
+                <p class="fw-medium small mb-0">{{ user_obj.last_login|date:"M d, Y H:i"|default:"Never" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Login History -->
+        <div class="admin-card mb-4">
+            <div class="card-header">
+                <h5 class="m-0"><i data-lucide="activity" size="18" class="me-2"></i> Login History</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table-admin">
+                    <thead>
+                        <tr>
+                            <th>Login Time</th>
+                            <th>Logout Time</th>
+                            <th>Duration</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in login_history %}
+                        <tr>
+                            <td>{{ activity.login_time|date:"M d, Y H:i:s" }}</td>
+                            <td>
+                                {% if activity.logout_time %}
+                                {{ activity.logout_time|date:"M d, Y H:i:s" }}
+                                {% else %}
+                                <span class="text-success small fw-bold">Active Session</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if activity.duration %}
+                                {{ activity.duration }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ activity.ip_address|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted">No login history available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="admin-card">
+            <div class="card-header">
+                <h5 class="m-0"><i data-lucide="shopping-bag" size="18" class="me-2"></i> Recent Orders</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table-admin">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                            <td><span class="status-badge {{ order.status|lower }}">{{ order.status }}</span></td>
+                            <td>₹{{ order.total_amount }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted">No recent orders.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

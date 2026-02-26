@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SNEAKO | Shop Sneakers{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Additional Shop Styles */
+    .shop-container {
+        padding-top: 2rem;
+    }
+
+    .shop-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 40px;
+    }
+
+    .filters-sidebar {
+        position: sticky;
+        top: 100px;
+        height: fit-content;
+    }
+
+    .filter-group {
+        margin-bottom: 30px;
+        border-bottom: 1px solid var(--medium-gray);
+        padding-bottom: 20px;
+    }
+
+    .filter-group h4 {
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+
+    .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .size-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .size-option input {
+        display: none;
+    }
+
+    .size-label {
+        display: block;
+        padding: 10px;
+        border: 1px solid var(--medium-gray);
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .size-option input:checked+.size-label {
+        background: var(--primary-color);
+        color: var(--white);
+        border-color: var(--primary-color);
+    }
+
+    .size-label:hover:not(.active) {
+        border-color: var(--primary-color);
+    }
+
+    .price-range {
+        margin: 20px 0;
+    }
+
+    .slider-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: var(--accent-color);
+        margin-top: 10px;
+    }
+
+    .shop-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 30px;
+    }
+
+    .shop-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+    }
+
+    .sort-by select {
+        padding: 8px 16px;
+        border-radius: 50px;
+        border: 1px solid var(--medium-gray);
+    }
+
+    .load-more-container {
+        text-align: center;
+        margin-top: 50px;
+    }
+
+    .btn-load-more {
+        padding: 12px 40px;
+        border: 2px solid var(--primary-color);
+        border-radius: 50px;
+        font-weight: 700;
+        cursor: pointer;
+        background: none;
+        transition: var(--transition);
+    }
+
+    .btn-load-more:hover {
+        background: var(--primary-color);
+        color: var(--white);
+    }
+
+    /* Checkbox styling */
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+    }
+
+    .checkbox-item input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary-color);
+    }
+
+    .filter-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-apply {
+        padding: 12px;
+        background: var(--primary-color);
+        color: var(--white);
+        border: none;
+        border-radius: 50px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    @media (max-width: 992px) {
+        .shop-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .filters-sidebar {
+            display: none;
+        }
+
+        /* Add mobile filter toggle if needed */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container shop-container">
+    <div class="breadcrumbs">
+        <a href="{% url 'store:home' %}">Home</a> / <span>Shop</span>
+    </div>
+
+    <div class="shop-header">
+        <h1>Shop Sneakers</h1>
+        <div class="sort-by">
+            <span style="font-size: 0.9rem; font-weight: 600; margin-right: 10px;">Sort by:</span>
+            <select name="sort">
+                <option value="newest">New Arrivals</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="shop-layout">
+        <!-- Sidebar Filters -->
+        <aside class="filters-sidebar">
+            <form id="filter-form" method="get">
+                <!-- Brand Filter -->
+                <div class="filter-group">
+                    <h4>Brand</h4>
+                    <div class="filter-options">
+                        {% for brand in brands %}
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="brand" value="{{ brand }}" {% if brand in selected_brands %}checked{% endif %}>
+                            {{ brand }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+
+                <!-- Price Range Filter -->
+                <div class="filter-group">
+                    <h4>Price Range</h4>
+                    <div class="price-range">
+                        <input type="range" class="slider" name="max_price" min="0" max="25000" step="500"
+                            value="{{ max_price|default:25000 }}"
+                            oninput="document.getElementById('price-val').innerText = '0 - ₹' + this.value">
+                        <div class="slider-info">
+                            <span>₹0</span>
+                            <span id="price-val">₹0 - ₹{{ max_price|default:25000 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Size Filter -->
+                <div class="filter-group">
+                    <h4>Shoe Size</h4>
+                    <div class="size-grid">
+                        {% for size in sizes %}
+                        <div class="size-option">
+                           <input type="radio" name="size" id="size-{{ size.value }}" value="{{ size.value }}" {% if size.value == selected_size %}checked{% endif %}>
+
+                            <label for="size-{{ size.value }}" class="size-label">
+                                {{ size.value }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Gender Filter -->
+                <div class="filter-group">
+                    <h4>Gender</h4>
+                    <div class="filter-options">
+                        {% for gender in genders %}
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="gender" value="{{ gender }}"
+                            {% if gender in selected_genders %}checked{% endif %}>
+                            {{ gender }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+
+                <div class="filter-footer">
+                    <button type="submit" class="btn-apply">Apply Filters</button>
+                    <a href="{% url 'store:shop' %}" class="btn btn-outline"
+                        style="text-align: center; padding: 10px;">Clear Filters</a>
+                </div>
+            </form>
+
+        </aside>
+
+        <!-- Product Grid -->
+        <main class="product-grid-container">
+            <div class="grid grid-3">
+                {% for product in products %}
+                <div class="product-card">
+                    <a href="{% url 'store:product_detail' product.pk %}"
+                        style="text-decoration: none; color: inherit;">
+                        <div class="product-img-wrapper">
+                            {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                            {% elif product.image_url %}
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                            {% else %}
+                            <img src="{% static 'images/no-image.png' %}" alt="No image">
+                            {% endif %}
+
+                            <button class="add-to-cart">Add to Cart</button>
+                        </div>
+                    </a>
+
+                    <div class="product-info">
+                        <a href="{% url 'store:product_detail' product.pk %}"
+                            style="text-decoration: none; color: inherit;">
+                            <h3 style="margin-top: 5px;">{{ product.brand }} {{ product.name }}</h3>
+                        </a>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <p class="price m-0">₹{{ product.price }}</p>
+                            {% if product.original_price %}
+                            <p class="text-muted small m-0" style="text-decoration: line-through;">₹{{
+                                product.original_price }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center w-100 py-5">
+                    <p class="text-muted">No shoes match your current filters.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if products %}
+            <div class="load-more-container">
+                <button class="btn-load-more">Load More</button>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyCoupon(code) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Coupon code ' + code + ' copied to clipboard!');
+            }).catch(err => {
+                const textArea = document.createElement("textarea");
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Coupon code ' + code + ' copied to clipboard!');
+            });
+        }
+    }
+</script>
+{% endblock %}

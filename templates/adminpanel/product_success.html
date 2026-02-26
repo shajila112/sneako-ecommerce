@@ -1,0 +1,37 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Product Added Successfully | SNEAKO Admin{% endblock %}
+{% block active_products %}active{% endblock %}
+{% block page_title %}Success{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="admin-card text-center p-5">
+            <div class="mb-4">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center"
+                    style="width: 100px; height: 100px;">
+                    <i data-lucide="check-circle" size="60" class="text-success"></i>
+                </div>
+            </div>
+
+            <h2 class="fw-bold mb-3">Product Added Successfully!</h2>
+            <p class="text-muted mb-5">
+                The new product has been saved and is now visible to customers in the store.
+            </p>
+
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-dark rounded-pill py-3 fw-bold" data-bs-toggle="modal"
+                    data-bs-target="#addProductModal"
+                    onclick="window.location.href='{% url 'adminpanel:products' %}?add=true'">
+                    Add Another Product
+                </button>
+                <a href="{% url 'adminpanel:products' %}" class="btn btn-light rounded-pill py-3 fw-bold">
+                    View Product List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
