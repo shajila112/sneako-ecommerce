@@ -11,7 +11,7 @@ def home(request):
     available_coupons = Coupon.objects.filter(active=True, valid_from__lte=now, valid_to__gte=now)
     best_discount_percentage = available_coupons.order_by('-discount_percentage').first().discount_percentage if available_coupons.exists() else 0
     
-    products = Product.objects.all().order_by('-id')
+    products = Product.objects.all().order_by('-id')[:8]
     return render(request, 'store/index.html', {
         'products': products, 
         'available_coupons': available_coupons,
@@ -83,7 +83,12 @@ def product_detail(request, pk):
     from store.models import Coupon
     from django.utils import timezone
     now = timezone.now()
-    available_coupons = Coupon.objects.filter(active=True, valid_from__lte=now, valid_to__gte=now)
+    available_coupons = Coupon.objects.filter(
+        active=True, 
+        valid_from__lte=now, 
+        valid_to__gte=now,
+        minimum_amount__lte=product.price
+    )
 
     discount_amount = None
     discount_percentage = None

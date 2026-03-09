@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate,login,logout
 
 from.utils import generate_otp
@@ -75,24 +75,30 @@ def login_view(request):
         return redirect('store:home')
 
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        
+        print(f"DEBUG: Login attempt for email: {email}")
 
         user = authenticate(request, username=email, password=password)
 
         if user:
             if not user.is_active:
-                messages.error(request,"please verify OTP first ")
-                return redirect('accounts:register')
+                messages.error(request, "Please verify your account OTP first.")
+                request.session['otp_user_id'] = user.id
+                return redirect('accounts:otp_verify')
            
-            login(request,user)
+            login(request, user)
                 
-        #admin vs user check
+            # Admin vs User check
             if user.is_staff:
+                messages.success(request, f"Welcome back Admin, {user.username}!")
                 return redirect('adminpanel:admin_dashboard')
             else:
+                messages.success(request, "You have logged in successfully!")
                 return redirect('store:home')        
         else:
+            print("DEBUG: Authentication failed")
             messages.error(request, "Invalid email or password")
 
     return render(request, 'accounts/login.html')
@@ -108,6 +114,11 @@ def logout_view(request):
 
 @never_cache
 def otp_verify_view(request):
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('adminpanel:admin_dashboard')
+        return redirect('store:home')
+
     user_id=request.session.get('otp_user_id')
 
     if not user_id:
@@ -148,6 +159,9 @@ def otp_verify_view(request):
 
 @never_cache
 def resend_otp(request):
+    if request.user.is_authenticated:
+        return redirect('store:home')
+
     user_id=request.session.get('otp_user_id')
 
     if not user_id:
@@ -177,6 +191,9 @@ def resend_otp(request):
 
 @never_cache
 def forgot_password_view(request):
+    if request.user.is_authenticated:
+        return redirect('store:home')
+
     if request.method == 'POST':
         email = request.POST.get('email')
 
@@ -212,6 +229,9 @@ def forgot_password_view(request):
 
 @never_cache
 def forgot_password_otp_view(request):
+    if request.user.is_authenticated:
+        return redirect('store:home')
+
     user_id=request.session.get('reset_user_id')
     if not user_id:
         return redirect('accounts:forgot_password')
@@ -235,6 +255,9 @@ def forgot_password_otp_view(request):
 
 @never_cache
 def reset_password_view(request):
+    if request.user.is_authenticated:
+        return redirect('store:home')
+
     user_id = request.session.get('reset_user_id')
     otp_verified = request.session.get('otp_verified')
 
@@ -265,6 +288,9 @@ def reset_password_view(request):
 
 @never_cache
 def forgot_resend_otp(request):
+    if request.user.is_authenticated:
+        return redirect('store:home')
+
     user_id = request.session.get('reset_user_id')
 
     if not user_id:
@@ -291,6 +317,9 @@ def forgot_resend_otp(request):
 
 @never_cache
 def reset_success_view(request):
+    if request.user.is_authenticated:
+        return redirect('store:home')
+        
     return render(request, 'accounts/reset_success.html')
 
 
@@ -298,6 +327,24 @@ def reset_success_view(request):
 from django.contrib.auth.decorators import login_required
 from .forms import UserAddressForm, UserUpdateForm, UserProfileForm
 from .models import UserAddress, UserProfile
+from adminpanel.models import UserNotification
+
+@never_cache
+@login_required(login_url='accounts:login')
+def mark_notification_read(request, pk):
+    notification = get_object_or_404(UserNotification, pk=pk, user=request.user)
+    notification.is_read = True
+    notification.save()
+    messages.success(request, "Notification marked as read.")
+    return redirect('accounts:profile')
+
+@never_cache
+@login_required(login_url='accounts:login')
+def delete_notification(request, pk):
+    notification = get_object_or_404(UserNotification, pk=pk, user=request.user)
+    notification.delete()
+    messages.success(request, "Notification deleted.")
+    return redirect('accounts:profile')
 
 @never_cache
 @login_required(login_url='accounts:login')
@@ -315,9 +362,13 @@ def profile_view(request):
             messages.success(request, "Profile updated successfully.")
             return redirect('accounts:profile')
 
+    from .models import Wallet
+    wallet, created = Wallet.objects.get_or_create(user=request.user)
+
     context = {
         'user_form': user_form,
         'profile_form': profile_form,
+        'wallet': wallet,
     }
     return render(request, 'accounts/profile.html', context)
 

@@ -70,12 +70,12 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Current Price ($)</label>
-                                <input type="number" name="price" step="0.01" class="form-control rounded-pill px-3"
-                                    value="{{ product.price }}" required>
+                                <input type="number" name="price" step="0.01" min="0"
+                                    class="form-control rounded-pill px-3" value="{{ product.price }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Original Price ($)</label>
-                                <input type="number" name="original_price" step="0.01"
+                                <input type="number" name="original_price" step="0.01" min="0"
                                     class="form-control rounded-pill px-3"
                                     value="{{ product.original_price|default:'' }}">
                             </div>
@@ -83,8 +83,8 @@
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Total Stock Quantity (Calculated from
                                 Sizes)</label>
-                            <input type="number" name="stock" class="form-control rounded-pill px-3"
-                                value="{{ product.stock }}" readonly>
+                            <input type="number" name="stock" id="total-stock-edit"
+                                class="form-control rounded-pill px-3" value="{{ product.stock }}" readonly>
                             <small class="text-muted">This field is now handled per size in the "Specs & Sizes"
                                 tab.</small>
                         </div>
@@ -252,10 +252,8 @@
                                 <div class="col-6 col-md-4">
                                     <div class="card border p-2 h-100 shadow-sm" style="border-radius: 12px;">
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="sizes"
-                                            value="{{ size.id }}"
-                                            id="editSize{{ size.id }}"
-                                            {% if size.id in selected_size_ids %}checked{% endif %}>
+                                            <input type="checkbox" name="sizes" value="{{ size.id }}"
+                                            id="editSize{{ size.id }}" {% if size.id in selected_size_ids %}checked{% endif %}>
 
                                             <label class="form-check-label fw-bold small" for="editSize{{ size.id }}">
                                                 Size {{ size.value }}
@@ -448,9 +446,49 @@
                     container.insertAdjacentHTML('beforeend', html);
                     document.getElementById('new-size-val').value = '';
                 } else {
-                    alert(data.message || 'Error adding size');
+                    showToast(data.message || 'Error adding size', 'error');
                 }
             });
     }
+
+    // Automatic Stock Calculation
+    function calculateTotalStock() {
+        const stockInputs = document.querySelectorAll('input[name^="stock_"]');
+        let total = 0;
+        stockInputs.forEach(input => {
+            const sizeId = input.name.split('_')[1];
+            const checkbox = document.querySelector(`input[name="sizes"][value="${sizeId}"]`);
+            if (checkbox && checkbox.checked) {
+                const val = parseInt(input.value) || 0;
+                total += Math.max(0, val);
+            }
+        });
+        const totalStockField = document.getElementById('total-stock-edit');
+        if (totalStockField) {
+            totalStockField.value = total;
+        }
+    }
+
+    // Attach listener to sizes container
+    document.getElementById('sizes-container').addEventListener('input', function (e) {
+        if (e.target && e.target.name && (e.target.name.startsWith('stock_') || e.target.name === 'sizes')) {
+            calculateTotalStock();
+        }
+    });
+
+    document.getElementById('sizes-container').addEventListener('change', function (e) {
+        if (e.target && e.target.name === 'sizes') {
+            calculateTotalStock();
+        }
+    });
+
+    // Also watch for newly added sizes
+    const observer = new MutationObserver(function (mutations) {
+        calculateTotalStock();
+    });
+    observer.observe(document.getElementById('sizes-container'), { childList: true, subtree: true });
+
+    // Initial calculation (in case of cached values or manual edits)
+    window.addEventListener('load', calculateTotalStock);
 </script>
 {% endblock %}

@@ -5,6 +5,25 @@
 {% block active_promo %}active{% endblock %}
 {% block page_title %}Promo Code Management{% endblock %}
 
+{% block extra_css %}
+<style>
+    .promo-badge {
+        display: inline-block;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 50rem;
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="admin-card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -24,6 +43,7 @@
                     <th>Discount (%)</th>
                     <th>Min. Amount</th>
                     <th>Validity Period</th>
+                    <th>Conditions</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -41,14 +61,29 @@
                         </small>
                     </td>
                     <td>
+                        <small>
+                            {% if coupon.is_first_order_only %}
+                            <span class="promo-badge bg-info text-dark">First Order Only</span>
+                            {% else %}
+                            <span class="text-muted">No special conditions</span>
+                            {% endif %}
+                        </small>
+                    </td>
+                    <td>
                         {% if coupon.active %}
-                        <span class="badge bg-success">Active</span>
+                        <a href="{% url 'adminpanel:toggle_coupon' coupon.code %}"
+                            class="promo-badge bg-success text-white text-decoration-none">Active</a>
                         {% else %}
-                        <span class="badge bg-danger">Inactive</span>
+                        <a href="{% url 'adminpanel:toggle_coupon' coupon.code %}"
+                            class="promo-badge bg-danger text-white text-decoration-none">Inactive</a>
                         {% endif %}
                     </td>
                     <td>
                         <div class="d-flex gap-2">
+                            <a href="{% url 'adminpanel:edit_coupon' coupon.code %}" class="btn btn-sm btn-light border"
+                                title="Edit">
+                                <i data-lucide="edit-3" size="14"></i>
+                            </a>
                             <button class="btn btn-sm btn-light border text-danger delete-promo-btn" title="Delete"
                                 data-bs-toggle="modal" data-bs-target="#deletePromoModal"
                                 data-code="{{ coupon.code }}"><i data-lucide="trash-2" size="14"></i></button>
@@ -57,7 +92,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-4 text-muted">No promo codes found.</td>
+                    <td colspan="7" class="text-center py-4 text-muted">No promo codes found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -74,7 +109,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <form action="{% url 'adminpanel:create_coupon' %}" method="POST">
+                <form id="promo-form" action="{% url 'adminpanel:create_coupon' %}" method="POST">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted">Promo Code Name</label>
@@ -90,7 +125,7 @@
                         <div class="col">
                             <label class="form-label small fw-bold text-muted">Min. Amount (₹)</label>
                             <input type="number" name="minimum_amount" class="form-control rounded-pill px-3"
-                                placeholder="0.00" step="0.01" required>
+                                placeholder="0.00" step="0.01" required min="0">
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -105,9 +140,22 @@
                                 required>
                         </div>
                     </div>
-                    <div class="mb-4 d-flex align-items-center gap-2">
-                        <input type="checkbox" name="active" id="active_toggle" class="form-check-input" checked>
-                        <label for="active_toggle" class="small fw-bold text-muted mb-0">Active</label>
+                    <div class="row mb-4">
+                        <div class="col">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="active" id="active_toggle" class="form-check-input"
+                                    checked>
+                                <label for="active_toggle" class="small fw-bold text-muted mb-0">Active Status</label>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="is_first_order_only" id="first_order_toggle"
+                                    class="form-check-input">
+                                <label for="first_order_toggle" class="small fw-bold text-muted mb-0">First Order
+                                    Only</label>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold">Create Code</button>
                 </form>
@@ -154,5 +202,28 @@
             document.getElementById('confirm-delete-btn').setAttribute('href', deleteUrl);
         });
     });
+
+    // Form Validation for Dates
+    const promoForm = document.getElementById('promo-form');
+    if (promoForm) {
+        promoForm.addEventListener('submit', function (e) {
+            const startInput = promoForm.querySelector('input[name="valid_from"]');
+            const endInput = promoForm.querySelector('input[name="valid_to"]');
+
+            if (startInput && endInput && startInput.value && endInput.value) {
+                const startDate = new Date(startInput.value);
+                const endDate = new Date(endInput.value);
+
+                if (startDate > endDate) {
+                    e.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast("Expiry date must be after start date.", 'error');
+                    } else {
+                        alert("Expiry date must be after start date.");
+                    }
+                }
+            }
+        });
+    }
 </script>
 {% endblock %}

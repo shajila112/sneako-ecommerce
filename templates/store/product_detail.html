@@ -165,6 +165,44 @@
         font-weight: 700;
     }
 
+    .stock-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .stock-in {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .stock-out {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .size-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: var(--secondary-gray);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .size-btn.disabled::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: var(--text-muted);
+        transform: rotate(-45deg);
+    }
+
     .tagline {
         color: var(--text-muted);
         font-size: 1.15rem;
@@ -469,6 +507,42 @@
             font-size: 1.1rem;
         }
     }
+
+    /* Offers Section */
+    .offers-section {
+        margin-top: 35px;
+        padding: 20px;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+    }
+
+    .offer-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 12px;
+    }
+
+    .offer-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .offer-badge {
+        background: #000;
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .offer-text {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #334155;
+    }
 </style>
 {% endblock %}
 
@@ -532,6 +606,16 @@
                 {% endif %}
             </div>
 
+            {% if product.stock > 0 %}
+            <div class="stock-badge stock-in">
+                <i data-lucide="check-circle" size="14" class="me-1"></i> In Stock
+            </div>
+            {% else %}
+            <div class="stock-badge stock-out">
+                <i data-lucide="x-circle" size="14" class="me-1"></i> Out of Stock
+            </div>
+            {% endif %}
+
 
             <p class="tagline">
                 {{ product.short_tagline|default:product.description|truncatewords:20 }}
@@ -543,11 +627,13 @@
                 <div class="size-selector">
                     <h5>Select Size (UK) <a href="#" class="size-link">Size Guide</a></h5>
                     <div class="size-grid">
-                        {% for size in product.sizes.all %}
+                        {% for ps in product.product_sizes.all %}
                         <div class="size-item">
-                            <input type="radio" name="size" value="{{ size.id }}" id="sz-{{ size.id }}"
-                                class="size-radio d-none" required>
-                            <label for="sz-{{ size.id }}" class="size-btn">{{ size.value }}</label>
+                            <input type="radio" name="size" value="{{ ps.size.id }}" id="sz-{{ ps.size.id }}"
+                                class="size-radio d-none" {% if ps.stock <= 0 %}disabled{% endif %} required>
+                            <label for="sz-{{ ps.size.id }}" class="size-btn {% if ps.stock <= 0 %}disabled{% endif %}">
+                                {{ ps.size.value }}
+                            </label>
                         </div>
                         {% empty %}
                         <p class="text-muted">No sizes available.</p>
@@ -568,7 +654,9 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button type="submit" class="atc-btn">Add to Cart</button>
+                    <button type="submit" class="atc-btn" {% if product.stock <= 0 %}disabled{% endif %}>
+                        {% if product.stock > 0 %}Add to Cart{% else %}Out of Stock{% endif %}
+                    </button>
                     <a href="{% url 'add_to_wishlist' product.id %}" class="wish-btn">
                         <i data-lucide="heart" size="22"></i> Wishlist
                     </a>
@@ -586,6 +674,21 @@
                     Secure Payment
                 </div>
             </div>
+
+            {% comment %}
+            {% if available_coupons %}
+            <div class="offers-section">
+                <h6 class="fw-800 mb-3 text-uppercase small" style="letter-spacing: 1px;">Available Offers</h6>
+                {% for coupon in available_coupons %}
+                <div class="offer-item">
+                    <div class="offer-badge">{{ coupon.code }}</div>
+                    <div class="offer-text">Get {{ coupon.discount_percentage }}% OFF on orders above ₹{{
+                        coupon.minimum_amount }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endcomment %}
         </div>
     </div>
 

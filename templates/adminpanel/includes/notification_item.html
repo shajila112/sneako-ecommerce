@@ -1,0 +1,58 @@
+<div class="notif-item {% if not notification.is_read %}unread{% endif %} border-bottom px-4">
+    <div class="notif-icon bg-{{ notification.notification_type }}">
+        {% if notification.notification_type == 'login' %}
+        <i data-lucide="log-in" size="20"></i>
+        {% elif notification.notification_type == 'cancel_request' %}
+        <i data-lucide="x-circle" size="20"></i>
+        {% elif notification.notification_type == 'order' %}
+        <i data-lucide="shopping-cart" size="20"></i>
+        {% elif notification.notification_type == 'return' %}
+        <i data-lucide="refresh-cw" size="20"></i>
+        {% elif notification.notification_type == 'stock' %}
+        <i data-lucide="alert-triangle" size="20"></i>
+        {% elif notification.notification_type == 'payment' %}
+        <i data-lucide="credit-card" size="20"></i>
+        {% elif notification.notification_type == 'coupon' %}
+        <i data-lucide="ticket" size="20"></i>
+        {% else %}
+        <i data-lucide="bell" size="20"></i>
+        {% endif %}
+    </div>
+    <div class="notif-content">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <span class="notif-type-badge bg-{{ notification.notification_type }} mb-1 d-inline-block">
+                    {{ notification.get_notification_type_display }}
+                </span>
+                <h5>{{ notification.message|truncatechars:80 }}</h5>
+            </div>
+            <span class="notif-time">{{ notification.created_at|timesince }} ago</span>
+        </div>
+        {% if notification.related_link %}
+        <div class="notif-actions mt-2">
+            {% if notification.notification_type == 'cancel_request' and not notification.is_read %}
+                {% with order_id=notification.related_link|slice:"19:-1" %}
+                <div class="mb-2">
+                    <a href="{% url 'adminpanel:approve_cancellation' order_id %}" class="btn btn-sm btn-success rounded-pill px-3 py-1 me-1">Accept</a>
+                    <a href="{% url 'adminpanel:reject_cancellation' order_id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 me-2">Reject</a>
+                </div>
+                {% endwith %}
+            {% elif notification.notification_type == 'return' and not notification.is_read %}
+                {% with order_id=notification.related_link|slice:"19:-1" %}
+                <div class="mb-2">
+                    <a href="{% url 'adminpanel:approve_return' order_id %}" class="btn btn-sm btn-success rounded-pill px-3 py-1 me-1">Approve Return</a>
+                    <a href="{% url 'adminpanel:reject_return' order_id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 me-2">Reject Return</a>
+                </div>
+                {% endwith %}
+            {% endif %}
+
+            {% if not notification.is_read %}
+            <form action="{% url 'adminpanel:mark_notification_read' notification.id %}" method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-link text-muted text-decoration-none">Mark as read</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>

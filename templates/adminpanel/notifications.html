@@ -5,57 +5,150 @@
 {% block active_notifications %}active{% endblock %}
 {% block page_title %}Notifications{% endblock %}
 
+{% block extra_css %}
+<style>
+    .notif-item {
+        transition: background-color 0.3s;
+        display: flex;
+        gap: 1.5rem;
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .notif-item.unread {
+        background-color: #f8fafc;
+        border-right: 4px solid var(--primary-color, #ff0000);
+    }
+
+    .notif-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .notif-content {
+        flex: 1;
+    }
+
+    .notif-content h5 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: #1e293b;
+    }
+
+    .notif-content p {
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+
+    .notif-time {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .notif-type-badge {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.025em;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Type Specific Colors */
+    .bg-login {
+        background-color: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .bg-order {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
+
+    .bg-return {
+        background-color: #fef9c3;
+        color: #a16207;
+    }
+
+    .bg-stock {
+        background-color: #ffedd5;
+        color: #c2410c;
+    }
+
+    .bg-payment {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .bg-coupon {
+        background-color: #f3e8ff;
+        color: #7e22ce;
+    }
+
+    .bg-cancel_request {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .bg-other {
+        background-color: #f1f5f9;
+        color: #475569;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="admin-card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="m-0">Admin Notifications</h4>
-        <button class="btn btn-sm btn-outline-dark">Mark all as read</button>
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="m-0">Admin Notifications</h4>
+            <form action="{% url 'adminpanel:notifications_mark_all_read' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-dark rounded-pill px-3">Mark all as read</button>
+            </form>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="?filter=all" class="btn btn-sm {% if current_filter == 'all' %}btn-dark{% else %}btn-outline-dark{% endif %} rounded-pill px-3">All</a>
+            <a href="?filter=requests" class="btn btn-sm {% if current_filter == 'requests' %}btn-dark{% else %}btn-outline-dark{% endif %} rounded-pill px-3">Requests</a>
+            <a href="?filter=login" class="btn btn-sm {% if current_filter == 'login' %}btn-dark{% else %}btn-outline-dark{% endif %} rounded-pill px-3">Logins</a>
+            <a href="?filter=other" class="btn btn-sm {% if current_filter == 'other' %}btn-dark{% else %}btn-outline-dark{% endif %} rounded-pill px-3">System/Other</a>
+        </div>
     </div>
 
     <div class="notifications-list p-0">
-        <!-- Today Section -->
+        {% if today_notifications %}
         <div class="notif-date-header px-4 py-2 bg-light border-bottom">
             <span class="text-muted small fw-bold text-uppercase">Today</span>
         </div>
-
-        {% for notification in today_notifications %}
-        <div class="notif-item {% if not notification.is_read %}unread{% endif %} border-bottom px-4">
-            <div class="notif-icon bg-{{ notification.color|default:'blue' }} text-{{ notification.text_color|default:'primary' }}"
-                style="background: {{ notification.bg_color|default:'#eff6ff' }};">
-                <i data-lucide="{{ notification.icon|default:'bell' }}" size="18"></i>
-            </div>
-            <div class="notif-content">
-                <div class="d-flex justify-content-between">
-                    <h5>{{ notification.title }}</h5>
-                    <span class="time">{{ notification.created_at|timesince }} ago</span>
-                </div>
-                <p>{{ notification.message }}</p>
-                {% if notification.action_url %}
-                <div class="notif-actions mt-2">
-                    <a href="{{ notification.action_url }}" class="btn btn-sm btn-light border py-0 px-2">{{
-                        notification.action_text|default:"View" }}</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% empty %}
-        <div class="p-4 text-center text-muted">No notifications for today.</div>
+        {% for notif in today_notifications %}
+        {% include 'adminpanel/includes/notification_item.html' with notification=notif %}
         {% endfor %}
+        {% endif %}
 
-        <!-- Earlier Section -->
+        {% if earlier_notifications %}
         <div class="notif-date-header px-4 py-2 bg-light border-bottom border-top">
             <span class="text-muted small fw-bold text-uppercase">Earlier</span>
         </div>
-
-        {% for notification in earlier_notifications %}
-        <div class="notif-item {% if not notification.is_read %}unread{% endif %} border-bottom px-4">
-            <!-- ... same structure ... -->
-        </div>
+        {% for notif in earlier_notifications %}
+        {% include 'adminpanel/includes/notification_item.html' with notification=notif %}
         {% endfor %}
-    </div>
+        {% endif %}
 
-    <div class="card-footer bg-white border-top-0 text-center py-3">
-        <button class="btn btn-sm btn-light border">Load more notifications</button>
+        {% if not today_notifications and not earlier_notifications %}
+        <div class="p-5 text-center text-muted">
+            <i data-lucide="bell-off" size="48" class="mb-3 opacity-20"></i>
+            <p>No notifications found.</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

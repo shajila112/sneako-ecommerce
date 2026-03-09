@@ -50,8 +50,10 @@
                 <div class="p-3 border rounded-4 bg-white shadow-sm">
                     <p class="mb-1 fw-700">{{ order.address.full_name }}</p>
                     <p class="text-muted small mb-1">{{ order.address.street_address }}</p>
-                    <p class="text-muted small mb-3">{{ order.address.city }}, {{ order.address.state }} {{
-                        order.address.zip_code }}</p>
+                    <p class="text-muted small mb-3">
+                        {{ order.address.city }}, {{ order.address.state }}
+                        {{ order.address.zip_code }}
+                    </p>
 
                     <div class="d-flex align-items-center gap-2 text-dark fw-bold small">
                         <i data-lucide="truck" style="width: 18px;"></i>

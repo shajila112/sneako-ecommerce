@@ -1,0 +1,166 @@
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<style>
+    #toast-container {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        padding: 16px 20px;
+        min-width: 320px;
+        max-width: 420px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12), 0 5px 15px -5px rgba(0, 0, 0, 0.05);
+        pointer-events: auto;
+        animation: toast-slide-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        transition: all 0.3s ease;
+        opacity: 0;
+    }
+
+    @keyframes toast-slide-in {
+        from { opacity: 0; transform: translateX(100px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .toast.hiding {
+        animation: toast-slide-out 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+    }
+
+    @keyframes toast-slide-out {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(100px); }
+    }
+
+    .toast-success { border-left: 4px solid #10b981; }
+    .toast-error { border-left: 4px solid #ef4444; }
+    .toast-warning { border-left: 4px solid #f59e0b; }
+    .toast-info { border-left: 4px solid #3b82f6; }
+
+    .toast-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .toast-success .toast-icon { background-color: #ecfdf5; color: #10b981; }
+    .toast-error .toast-icon { background-color: #fef2f2; color: #ef4444; }
+    .toast-warning .toast-icon { background-color: #fffbeb; color: #f59e0b; }
+    .toast-info .toast-icon { background-color: #eff6ff; color: #3b82f6; }
+
+    .toast-message {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #18181b;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        padding: 0;
+        color: #a1a1aa;
+        cursor: pointer;
+        margin-left: auto;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .toast-close:hover { color: #3f3f46; }
+</style>
+
+<script>
+    function showToast(message, type = 'success', duration = 5000) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        let iconName = 'check-circle';
+        if (type === 'error') iconName = 'alert-circle';
+        if (type === 'warning') iconName = 'alert-triangle';
+        if (type === 'info') iconName = 'info';
+
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i data-lucide="${iconName}" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div class="toast-content">
+                <p class="toast-message">${message}</p>
+            </div>
+            <button class="toast-close">
+                <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+            </button>
+        `;
+
+        container.appendChild(toast);
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        const timeout = setTimeout(() => {
+            dismissToast(toast);
+        }, duration);
+
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            clearTimeout(timeout);
+            dismissToast(toast);
+        });
+    }
+
+    function dismissToast(toast) {
+        toast.classList.add('hiding');
+        toast.addEventListener('animationend', () => {
+            toast.remove();
+        });
+    }
+
+    function initToasts() {
+        console.log("DEBUG: initToasts called");
+        {% if messages %}
+            console.log("DEBUG: Messages found");
+            {% for message in messages %}
+                {
+                    const tags = "{{ message.tags|escapejs }}";
+                    console.log("DEBUG: Processing message with tags:", tags);
+                    let msgType = 'success';
+                    if (tags.includes('error')) msgType = 'error';
+                    else if (tags.includes('warning')) msgType = 'warning';
+                    else if (tags.includes('info')) msgType = 'info';
+                    
+                    showToast("{{ message|escapejs }}", msgType);
+                }
+            {% endfor %}
+        {% else %}
+            console.log("DEBUG: No messages found");
+        {% endif %}
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initToasts);
+    } else {
+        initToasts();
+    }
+</script>

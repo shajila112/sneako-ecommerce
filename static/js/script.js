@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Success feedback
-            alert('Address added successfully!');
+            showToast('Address added successfully!');
 
             // Reset form and close modal
             addAddressForm.reset();
@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (confirm('Are you sure you want to delete this address?')) {
                 card.remove();
-                alert('Address deleted successfully!');
+                showToast('Address deleted successfully!');
             }
         }
     });
@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Success feedback
-            alert('Address updated successfully!');
+            showToast('Address updated successfully!');
 
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('editAddressModal'));
@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             localStorage.setItem('sneako_reviews', JSON.stringify(existingReviews));
 
-            alert(editId ? 'Your review has been updated successfully!' : 'Thank you! Your review has been submitted successfully.');
+            showToast(editId ? 'Your review has been updated successfully!' : 'Thank you! Your review has been submitted successfully.');
             window.location.href = 'profile.html?tab=reviews';
         });
     }
@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
             existingReviews.unshift(newReview);
             localStorage.setItem('sneako_reviews', JSON.stringify(existingReviews));
 
-            alert('Thank you! Your review has been submitted successfully.');
+            showToast('Thank you! Your review has been submitted successfully.');
             window.location.href = 'profile.html?tab=reviews';
         });
     }
@@ -776,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (modal) modal.hide();
 
                 renderReviews();
-                alert('Review updated successfully!');
+                showToast('Review updated successfully!');
             }
         });
     }

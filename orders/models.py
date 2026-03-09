@@ -6,22 +6,32 @@ import json
 class Order(models.Model):
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
-        ('Paid', 'Paid'),
+        ('Processing', 'Processing'),
         ('Shipped', 'Shipped'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled'),
+        ('Cancellation Requested', 'Cancellation Requested'),
+        ('Cancel Request Rejected', 'Cancel Request Rejected'),
+        ('Return Requested', 'Return Requested'),
+        ('Returned', 'Returned'),
+    ]
+
+    PAYMENT_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Paid', 'Paid'),
+        ('Refunded', 'Refunded'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     coupon = models.ForeignKey('store.Coupon', on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending')
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     tax = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=50)
-    payment_status = models.CharField(max_length=20, default='Pending')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -71,9 +81,14 @@ class ShippingAddress(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
+    size = models.ForeignKey('products.Size', on_delete=models.SET_NULL, null=True, blank=True)
     product_name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(default=1)
+
+    @property
+    def total_price(self):
+        return self.price * self.quantity
 
     def __str__(self):
         return f"{self.quantity} x {self.product_name}"

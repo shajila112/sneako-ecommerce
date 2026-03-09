@@ -1,0 +1,351 @@
+{% extends 'adminpanel/admin_index.html' %}
+{% load static %}
+
+{% block title %}Add Product | SNEAKO Admin{% endblock %}
+{% block active_products %}active{% endblock %}
+{% block page_title %}Add New Product{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            <form action="{% url 'adminpanel:add_product' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Tabs for the Form -->
+                <ul class="nav nav-pills mb-4 gap-2" id="addProductTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active rounded-pill px-3" id="general-tab" data-bs-toggle="pill"
+                            data-bs-target="#general" type="button">General</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-pill px-3" id="media-tab" data-bs-toggle="pill"
+                            data-bs-target="#media" type="button">Media</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-pill px-3" id="details-tab" data-bs-toggle="pill"
+                            data-bs-target="#details" type="button">Details</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-pill px-3" id="specs-tab" data-bs-toggle="pill"
+                            data-bs-target="#specs" type="button">Specs & Sizes</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="addProductTabContent">
+                    <!-- General Info Section -->
+                    <div class="tab-pane fade show active" id="general" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Product Name</label>
+                            <input type="text" name="name" class="form-control rounded-pill px-3"
+                                placeholder="Enter product name" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Brand</label>
+                                <select name="brand" class="form-select rounded-pill px-3">
+                                    <option value="Nike">Nike</option>
+                                    <option value="Adidas">Adidas</option>
+                                    <option value="Puma">Puma</option>
+                                    <option value="Reebok">Reebok</option>
+                                    <option value="New Balance">New Balance</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Gender</label>
+                                <select name="gender" class="form-select rounded-pill px-3">
+                                    <option value="Men">Men</option>
+                                    <option value="Women">Women</option>
+                                    <option value="Kids">Kids</option>
+                                    <option value="Unisex">Unisex</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">SKU</label>
+                                <input type="text" name="sku" class="form-control rounded-pill px-3"
+                                    placeholder="e.g. SNK-001">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Current Price ($)</label>
+                                <input type="number" name="price" step="0.01" min="0"
+                                    class="form-control rounded-pill px-3" placeholder="0.00" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Original Price ($)</label>
+                                <input type="number" name="original_price" step="0.01" min="0"
+                                    class="form-control rounded-pill px-3" placeholder="0.00 (Optional)">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Total Stock Quantity (Calculated from
+                                Sizes)</label>
+                            <input type="number" name="stock" id="total-stock-add"
+                                class="form-control rounded-pill px-3" value="0" readonly>
+                            <small class="text-muted">This field is automatically calculated based on sizes in the
+                                "Specs & Sizes" tab.</small>
+                        </div>
+                    </div>
+
+                    <!-- Media Section -->
+                    <div class="tab-pane fade" id="media" role="tabpanel">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted">Main Product Image</label>
+                            <div class="upload-area rounded-4 p-4 text-center mb-3"
+                                onclick="document.getElementById('main-file').click()"
+                                style="border: 2px dashed #dee2e6; cursor: pointer; background: #f8f9fa;">
+                                <i data-lucide="image" size="32" class="text-muted mb-2"></i>
+                                <p class="small text-muted mb-0">Select item's main features image</p>
+                                <input type="file" name="image" id="main-file" accept="image/*" class="d-none"
+                                    onchange="previewMain(this)">
+                            </div>
+                            <div id="main-preview-container" class="text-center d-none">
+                                <img id="main-preview" class="rounded shadow-sm"
+                                    style="width: 150px; height: 150px; object-fit: cover; border: 1px solid #dee2e6;">
+                                <p class="small text-muted mt-2">Main Image Preview</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted">Or Main Image URL</label>
+                                <input type="url" name="main_image_url" class="form-control rounded-pill px-3"
+                                    placeholder="https://...">
+                            </div>
+
+                            <hr class="my-4">
+
+                            <label class="form-label small fw-bold text-muted">Sub Photos (Gallery) Upload</label>
+                            <div class="upload-area rounded-4 p-4 text-center mb-3" id="drop-area"
+                                onclick="document.getElementById('fileElem').click()"
+                                style="border: 2px dashed #dee2e6; cursor: pointer; background: #f8f9fa;">
+                                <i data-lucide="upload-cloud" size="32" class="text-muted mb-2"></i>
+                                <p class="small text-muted mb-0">Click or drag images for galley (multiple supported)
+                                </p>
+                                <input type="file" name="images" id="fileElem" accept="image/*" class="d-none" multiple
+                                    onchange="handleFiles(this.files)">
+                            </div>
+                            <div id="gallery-preview" class="d-flex flex-wrap gap-2 mt-3"></div>
+
+                            <div class="row g-2 mt-3">
+                                <label class="form-label small fw-bold text-muted">Or Sub Photo URLs</label>
+                                <div class="col-md-6">
+                                    <input type="url" name="gallery_url_1"
+                                        class="form-control form-control-sm rounded-pill px-3"
+                                        placeholder="Image URL 1">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="url" name="gallery_url_2"
+                                        class="form-control form-control-sm rounded-pill px-3"
+                                        placeholder="Image URL 2">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="url" name="gallery_url_3"
+                                        class="form-control form-control-sm rounded-pill px-3"
+                                        placeholder="Image URL 3">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="url" name="gallery_url_4"
+                                        class="form-control form-control-sm rounded-pill px-3"
+                                        placeholder="Image URL 4">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details Section -->
+                    <div class="tab-pane fade" id="details" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Short Tagline</label>
+                            <input type="text" name="short_tagline" class="form-control rounded-pill px-3"
+                                placeholder="A catchy phrase for the product">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Description</label>
+                            <textarea name="description" class="form-control" rows="6" style="border-radius: 15px;"
+                                placeholder="Full product description..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Specs & Sizes Section -->
+                    <div class="tab-pane fade" id="specs" role="tabpanel">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Model Name</label>
+                                <input type="text" name="model_name" class="form-control rounded-pill px-3"
+                                    placeholder="e.g. Air Max 2024">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Color</label>
+                                <input type="text" name="color" class="form-control rounded-pill px-3"
+                                    placeholder="e.g. Black/White">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Material</label>
+                                <input type="text" name="material" class="form-control rounded-pill px-3"
+                                    placeholder="e.g. Leather/Mesh">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Sole</label>
+                                <input type="text" name="sole" class="form-control rounded-pill px-3"
+                                    placeholder="e.g. Rubber">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Closure</label>
+                            <input type="text" name="closure" class="form-control rounded-pill px-3"
+                                placeholder="e.g. Laces">
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label small fw-bold text-muted mb-0">Available Sizes (UK)</label>
+                                <div class="input-group input-group-sm" style="width: 200px;">
+                                    <input type="text" id="new-size-val" class="form-control"
+                                        placeholder="Add New Size">
+                                    <button class="btn btn-dark" type="button" onclick="addSize()">Add</button>
+                                </div>
+                            </div>
+                            <div class="row g-3" id="sizes-container">
+                                {% for size in sizes %}
+                                <div class="col-6 col-md-4">
+                                    <div class="card border p-2 h-100 shadow-sm" style="border-radius: 12px;">
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" name="sizes" value="{{ size.id }}"
+                                                id="size{{ size.id }}">
+                                            <label class="form-check-label fw-bold small" for="size{{ size.id }}">
+                                                Size {{ size.value }}
+                                            </label>
+                                        </div>
+                                        <input type="number" name="stock_{{ size.id }}"
+                                            class="form-control form-control-sm rounded-pill px-3" placeholder="Stock"
+                                            min="0">
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted small text-center w-100 py-3">No sizes available. Click 'Add' above
+                                    to create one.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                    <a href="{% url 'adminpanel:products' %}" class="btn btn-light rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-dark rounded-pill px-4 flex-grow-1 fw-bold">Create
+                        Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+
+    .upload-area:hover {
+        border-color: #000 !important;
+        background-color: #f1f3f5 !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewMain(input) {
+        const container = document.getElementById('main-preview-container');
+        const img = document.getElementById('main-preview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                img.src = e.target.result;
+                container.classList.remove('d-none');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function handleFiles(files) {
+        const preview = document.getElementById('gallery-preview');
+        preview.innerHTML = '';
+        [...files].forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.classList.add('preview-thumb');
+                preview.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function addSize() {
+        const val = document.getElementById('new-size-val').value;
+        if (!val) return;
+        const formData = new FormData();
+        formData.append('value', val);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        fetch("{% url 'adminpanel:add_size' %}", {
+            method: 'POST',
+            body: formData
+        }).then(response => response.json()).then(data => {
+            if (data.status === 'success') {
+                const container = document.getElementById('sizes-container');
+                const html = `
+                <div class="col-6 col-md-4">
+                    <div class="card border p-2 h-100 shadow-sm" style="border-radius: 12px;">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="sizes" value="${data.id}" id="size${data.id}" checked>
+                            <label class="form-check-label fw-bold small" for="size${data.id}">Size ${data.value}</label>
+                        </div>
+                        <input type="number" name="stock_${data.id}" class="form-control form-control-sm rounded-pill px-3" placeholder="Stock" min="0">
+                    </div>
+                </div>`;
+                if (container.querySelector('p.text-muted')) container.innerHTML = '';
+                container.insertAdjacentHTML('beforeend', html);
+                document.getElementById('new-size-val').value = '';
+                calculateTotalStock();
+            } else {
+                showToast(data.message || 'Error adding size', 'error');
+            }
+        });
+    }
+
+    function calculateTotalStock() {
+        const stockInputs = document.querySelectorAll('input[name^="stock_"]');
+        let total = 0;
+        stockInputs.forEach(input => {
+            const sizeId = input.name.split('_')[1];
+            const checkbox = document.querySelector(`input[name="sizes"][value="${sizeId}"]`);
+            if (checkbox && checkbox.checked) {
+                const val = parseInt(input.value) || 0;
+                total += Math.max(0, val);
+            }
+        });
+        const totalStockField = document.getElementById('total-stock-add');
+        if (totalStockField) totalStockField.value = total;
+    }
+
+    document.getElementById('sizes-container').addEventListener('input', function (e) {
+        if (e.target && e.target.name && (e.target.name.startsWith('stock_') || e.target.name === 'sizes')) {
+            calculateTotalStock();
+        }
+    });
+
+    document.getElementById('sizes-container').addEventListener('change', function (e) {
+        if (e.target && e.target.name === 'sizes') {
+            calculateTotalStock();
+        }
+    });
+</script>
+{% endblock %}

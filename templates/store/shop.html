@@ -195,7 +195,8 @@
                     <div class="filter-options">
                         {% for brand in brands %}
                         <label class="checkbox-item">
-                            <input type="checkbox" name="brand" value="{{ brand }}" {% if brand in selected_brands %}checked{% endif %}>
+                            <input type="checkbox" name="brand" value="{{ brand }}"
+                            {% if brand in selected_brands %}checked{% endif %}>
                             {{ brand }}
                         </label>
                         {% endfor %}
@@ -223,7 +224,8 @@
                     <div class="size-grid">
                         {% for size in sizes %}
                         <div class="size-option">
-                           <input type="radio" name="size" id="size-{{ size.value }}" value="{{ size.value }}" {% if size.value == selected_size %}checked{% endif %}>
+                            <input type="radio" name="size" id="size-{{ size.value }}" value="{{ size.value }}"
+                            {% if size.value == selected_size %}checked{% endif %}>
 
                             <label for="size-{{ size.value }}" class="size-label">
                                 {{ size.value }}
@@ -315,7 +317,7 @@
     function copyCoupon(code) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(code).then(() => {
-                alert('Coupon code ' + code + ' copied to clipboard!');
+                showToast('Coupon code ' + code + ' copied to clipboard!');
             }).catch(err => {
                 const textArea = document.createElement("textarea");
                 textArea.value = code;

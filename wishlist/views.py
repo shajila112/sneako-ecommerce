@@ -9,7 +9,7 @@ from .models import Wishlist, WishlistItem
 @login_required(login_url='accounts:login')
 def wishlist_view(request):
     wishlist, created = Wishlist.objects.get_or_create(user=request.user)
-    return render(request, 'store/wishlist.html', {'wishlist': wishlist})
+    return render(request, 'store/wishlist_fixed.html', {'wishlist': wishlist})
 
 @never_cache
 @login_required(login_url='accounts:login')

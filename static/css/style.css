@@ -1593,6 +1593,48 @@ ul {
     object-fit: contain;
 }
 
+.table-admin .btn-light {
+    background: #fff;
+    border-color: #e4e4e7 !important;
+    color: #3f3f46;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.table-admin .btn-light:hover {
+    background: #f4f4f5;
+    border-color: #27272a !important;
+    color: #000;
+    transform: translateY(-1px);
+}
+
+.table-admin .btn-light i {
+    color: #71717a;
+}
+
+.table-admin .btn-light:hover i {
+    color: #000;
+}
+
+.table-admin .btn-light.text-danger i {
+    color: #ef4444;
+}
+
+.table-admin .btn-light.text-danger:hover {
+    background: #fef2f2;
+    border-color: #ef4444 !important;
+}
+
+.table-admin .btn-light.text-danger:hover i {
+    color: #dc2626;
+}
+
 .stock-badge {
     padding: 4px 10px;
     border-radius: 50px;
@@ -2390,9 +2432,11 @@ ul {
 
 /* Input – exact model look */
 .auth-card .form-control {
-    height: 52px;                 /* 🔥 key */
+    height: 52px;
+    /* 🔥 key */
     padding: 0 16px;
-    border-radius: 12px;          /* 🔥 key */
+    border-radius: 12px;
+    /* 🔥 key */
     border: 1px solid #e4e4e7;
     font-size: 0.95rem;
     color: #09090b;
@@ -2415,7 +2459,8 @@ ul {
 /* Register button – pill shape */
 .auth-card .auth-btn {
     height: 54px;
-    border-radius: 999px;         /* 🔥 full pill */
+    border-radius: 999px;
+    /* 🔥 full pill */
     font-size: 1rem;
     font-weight: 700;
     margin-top: 16px;
@@ -2429,8 +2474,120 @@ ul {
     font-weight: 600;
     border-radius: 12px;
 }
+
 html {
     scroll-behavior: smooth;
 }
 
+/* --- Toast Notifications --- */
+#toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
 
+.toast {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    min-width: 300px;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08),
+        0 4px 10px -2px rgba(0, 0, 0, 0.04);
+    pointer-events: auto;
+    animation: toast-slide-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transition: all 0.3s ease;
+}
+
+.toast.hiding {
+    animation: toast-slide-out 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.toast-success .toast-icon {
+    background-color: #ecfdf5;
+    color: #10b981;
+}
+
+.toast-error .toast-icon {
+    background-color: #fef2f2;
+    color: #ef4444;
+}
+
+.toast-info .toast-icon {
+    background-color: #eff6ff;
+    color: #3b82f6;
+}
+
+.toast-warning .toast-icon {
+    background-color: #fffbeb;
+    color: #f59e0b;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-message {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #18181b;
+    margin: 0;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #a1a1aa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #3f3f46;
+}
+
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toast-slide-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+}

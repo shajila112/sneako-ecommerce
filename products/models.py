@@ -46,6 +46,12 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.brand} {self.name}"
 
+    def update_total_stock(self):
+        """Recalculate total stock from all sizes."""
+        total = self.product_sizes.aggregate(models.Sum('stock'))['stock__sum'] or 0
+        self.stock = total
+        self.save()
+
 class ProductSize(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_sizes')
     size = models.ForeignKey(Size, on_delete=models.CASCADE)
@@ -56,6 +62,15 @@ class ProductSize(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - Size {self.size.value} ({self.stock})"
+
+    def reduce_stock(self, quantity):
+        """Reduce stock and update the parent product's total stock."""
+        if self.stock >= quantity:
+            self.stock -= quantity
+            self.save()
+            self.product.update_total_stock()
+            return True
+        return False
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)

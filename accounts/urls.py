@@ -15,6 +15,8 @@ from .views import (
     edit_address_view,
     delete_address_view,
     profile_view,
+    mark_notification_read,
+    delete_notification,
 )
 
 app_name = 'accounts'
@@ -43,5 +45,9 @@ urlpatterns = [
     path('addresses/add/', add_address_view, name='add_address'),
     path('addresses/edit/<int:pk>/', edit_address_view, name='edit_address'),
     path('addresses/delete/<int:pk>/', delete_address_view, name='delete_address'),
+
+    # NOTIFICATIONS
+    path('notifications/read/<int:pk>/', mark_notification_read, name='mark_notification_read'),
+    path('notifications/delete/<int:pk>/', delete_notification, name='delete_notification'),
 ]
 

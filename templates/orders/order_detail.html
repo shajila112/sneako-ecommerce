@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Details #SNK-{{ order.id }} | SNEAKO{% endblock %}
+
+{% block content %}
+<main class="order-detail-page py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="{% url 'orders:orders' %}" class="text-dark text-decoration-none fw-600">
+                <i data-lucide="arrow-left" class="me-2" style="width: 18px;"></i> Back to Orders
+            </a>
+            <div class="d-flex gap-3">
+                {% if order.status == 'Pending' or order.status == 'Processing' or order.status == 'Paid' %}
+                <button onclick="confirmCancel()" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-700">Request Cancellation</button>
+                {% elif order.status == 'Cancellation Requested' %}
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 fw-700" disabled>Cancellation Requested</button>
+                {% elif order.status == 'Delivered' %}
+                <button onclick="confirmReturn()" class="btn btn-dark btn-sm rounded-pill px-4 fw-700">Return
+                    Product</button>
+                {% endif %}
+                <div class="badge rounded-pill px-4 py-2 {% if order.status == 'Paid' or order.status == 'Delivered' %}bg-success{% elif order.status == 'Cancelled' or order.status == 'Returned' or order.status == 'Cancellation Requested' %}bg-danger{% else %}bg-warning text-dark{% endif %}"
+                    style="font-size: 0.9rem;">
+                    {{ order.status }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Items and Summary -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h3 class="fw-800 mb-4 h4 text-uppercase">Items in Order</h3>
+                    <div class="order-items">
+                        {% for item in order.items.all %}
+                        <div
+                            class="d-flex align-items-center justify-content-between py-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-light rounded-3 p-2"
+                                    style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                    {% if item.product and item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product_name }}"
+                                        style="width: 100%; height: 100%; object-fit: contain;">
+                                    {% else %}
+                                    <i data-lucide="package" class="text-muted"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="fw-700 mb-1">{{ item.product_name }}</h6>
+                                    <p class="text-muted small mb-0">Qty: {{ item.quantity }} × ₹{{ item.price }}</p>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-800">₹{{ item.price|add:0 }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <h3 class="fw-800 mb-4 h4 text-uppercase">Payment Details</h3>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Payment Method</span>
+                        <span class="fw-600">{{ order.payment_method }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Payment Status</span>
+                        <span
+                            class="fw-600 {% if order.payment_status == 'Paid' %}text-success{% else %}text-warning{% endif %}">
+                            {{ order.payment_status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Shipping and Totals -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h3 class="fw-800 mb-4 h4 text-uppercase">Shipping Address</h3>
+                    {% if order.address %}
+                    <p class="fw-700 mb-1">{{ order.address.full_name }}</p>
+                    <p class="text-muted small mb-1">{{ order.address.street_address }}</p>
+                    <p class="text-muted small mb-1">
+                        {{ order.address.city }}, {{ order.address.state }}
+                        {{ order.address.zip_code }}
+                    </p>
+                    <p class="text-muted small mb-1">Phone: {{ order.address.phone }}</p>
+                    {% else %}
+                    <p class="text-muted">No shipping address recorded.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h3 class="fw-800 mb-4 h4 text-uppercase">Order Summary</h3>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal</span>
+                        <span class="fw-600">₹{{ order.subtotal }}</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Discount</span>
+                        <span>-₹{{ order.discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between mb-3 border-top pt-3">
+                        <span class="fw-800">Total</span>
+                        <span class="fw-800 h4 mb-0">₹{{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .fw-600 {
+        font-weight: 600;
+    }
+
+    .text-uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+<script>
+    lucide.createIcons();
+
+    function confirmCancel() {
+        if (confirm("Are you sure you want to request a cancellation for this order? If approved and you already paid, the amount will be refunded to your wallet.")) {
+            window.location.href = "{% url 'orders:cancel_order' order.id %}";
+        }
+    }
+
+    function confirmReturn() {
+        if (confirm("Are you sure you want to return this product? The total amount will be credited to your wallet once processed.")) {
+            window.location.href = "{% url 'orders:return_order' order.id %}";
+        }
+    }
+</script>
+{% endblock %}

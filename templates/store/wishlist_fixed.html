@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Wishlist | SNEAKO{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb-nav mb-4" style="color: #71717a; font-size: 0.9rem;">
+        Home / Wishlist / <span style="color: #000; font-weight: 500;">Saved Items</span>
+    </nav>
+
+    <h1 class="mb-5" style="font-weight: 800; font-size: 2.8rem; letter-spacing: -1px;">My Wishlist</h1>
+
+    {% if wishlist.items.exists %}
+    <div class="row g-4">
+        {% for item in wishlist.items.all %}
+        <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="wishlist-trial-card h-100"
+                style="background: #fff; border-radius: 24px; transition: 0.3s; position: relative; border: 1px solid #f4f4f5; padding: 12px; display: flex; flex-direction: column;">
+
+                <!-- Remove Button Overlay -->
+                <a href="{% url 'remove_from_wishlist' item.id %}" class="btn-remove"
+                    style="position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); color: #000; text-decoration: none; z-index: 2; transition: 0.2s;">
+                    <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                </a>
+
+                <!-- Product Image Area -->
+                <div class="img-wrapper mb-3"
+                    style="background: #f8f8f8; border-radius: 18px; padding: 25px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                    <a href="{% url 'store:product_detail' item.product.id %}"
+                        style="display: block; width: 100%; transition: transform 0.4s ease;">
+                        {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}"
+                            style="width: 100%; mix-blend-mode: multiply; transform: rotate(-5deg);"
+                            alt="{{ item.product.name }}">
+                        {% elif item.product.image_url %}
+                        <img src="{{ item.product.image_url }}"
+                            style="width: 100%; mix-blend-mode: multiply; transform: rotate(-5deg);"
+                            alt="{{ item.product.name }}">
+                        {% else %}
+                        <div style="color: #a1a1aa;"><i data-lucide="image" size="48"></i></div>
+                        {% endif %}
+                    </a>
+                </div>
+
+                <!-- Product Info -->
+                <div class="card-info px-2 pb-2 mt-auto">
+                    <span class="text-muted small text-uppercase fw-bold"
+                        style="letter-spacing: 0.5px; font-size: 0.65rem;">{{ item.product.brand }}</span>
+                    <h6 class="fw-bold my-1" style="font-size: 1.1rem; color: #18181b; line-height: 1.4;">
+                        {{ item.product.name }}
+                    </h6>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="fw-extrabold" style="font-size: 1.15rem;">${{ item.product.price }}</div>
+                        <a href="{% url 'store:product_detail' item.product.id %}" class="text-dark fw-bold small"
+                            style="text-decoration: underline;">View Shop</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div
+            style="background: #f8f8f8; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
+            <i data-lucide="heart" style="width: 48px; height: 48px; color: #a1a1aa;"></i>
+        </div>
+        <h2 class="fw-bold mb-3">Your wishlist is empty</h2>
+        <p class="text-muted mb-5" style="font-size: 1.15rem;">Looks like you haven't saved any sneakers yet.</p>
+        <a href="{% url 'store:shop' %}" class="btn btn-dark px-5 py-3 rounded-pill fw-bold"
+            style="background: #18181b; letter-spacing: 0.5px;">Start Exploring</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .wishlist-trial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+    }
+
+    .wishlist-trial-card:hover .img-wrapper img {
+        transform: scale(1.1) rotate(0deg) !important;
+    }
+
+    .btn-remove:hover {
+        background: #ef4444 !important;
+        color: #fff !important;
+        transform: scale(1.1);
+    }
+</style>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}
