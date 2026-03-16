@@ -56,9 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'django.contrib.sites',
-
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -171,7 +169,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 
-SITE_ID = 1
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -201,7 +199,7 @@ ACCOUNT_SIGNUP_FIELDS = [
     'password1*',
     'password2*',
 ]
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+
 
 
 MEDIA_URL = '/media/'
@@ -209,14 +207,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_AUTO_SIGNUP = True
-ACCOUNT_EMAIL_VERIFICATION = "none"
+
+
+
 
 SOCIALACCOUNT_QUERY_EMAIL = True
 
 SOCIALACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+
 
 
 
@@ -229,6 +227,20 @@ ACCOUNT_UNIQUE_EMAIL = True
 
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+
+
+# Django Allauth settings
+SITE_ID = 1
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+
+ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
 
 
