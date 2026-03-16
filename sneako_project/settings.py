@@ -32,7 +32,19 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    "https://sneako.online",
+    "https://www.sneako.online"
+]
+
+ALLOWED_HOSTS = [ "sneako.online",
+    "www.sneako.online",
+    "127.0.0.1",
+    "localhost"]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
 
 
 # Application definition
@@ -146,6 +158,8 @@ STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [ BASE_DIR / "static" ]
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -215,3 +229,6 @@ ACCOUNT_UNIQUE_EMAIL = True
 
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+
+
+
