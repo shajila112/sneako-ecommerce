@@ -44,6 +44,9 @@ ALLOWED_HOSTS = [ "sneako.online",
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
 
 
 
@@ -169,6 +172,10 @@ EMAIL_HOST_USER = 'shajilamuhammadali@gmail.com'
 EMAIL_HOST_PASSWORD = 'igvc anyt aspj znmf'
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+
+
 
 
 
